@@ -1,0 +1,264 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.25rem;
+
+    /* Light mode (not primary use case, but defined) */
+    --background: 0.18 0.02 240;
+    --foreground: 0.92 0.02 200;
+    --card: 0.22 0.025 240;
+    --card-foreground: 0.92 0.02 200;
+    --popover: 0.22 0.025 240;
+    --popover-foreground: 0.92 0.02 200;
+    --primary: 0.72 0.18 185;
+    --primary-foreground: 0.12 0.02 240;
+    --secondary: 0.28 0.03 240;
+    --secondary-foreground: 0.85 0.02 200;
+    --muted: 0.25 0.025 240;
+    --muted-foreground: 0.55 0.04 200;
+    --accent: 0.72 0.18 185;
+    --accent-foreground: 0.12 0.02 240;
+    --destructive: 0.62 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+    --border: 0.32 0.04 220;
+    --input: 0.28 0.03 230;
+    --ring: 0.72 0.18 185;
+
+    --chart-1: 0.72 0.18 185;
+    --chart-2: 0.75 0.18 55;
+    --chart-3: 0.62 0.22 25;
+    --chart-4: 0.65 0.15 280;
+    --chart-5: 0.55 0.12 145;
+
+    --sidebar: 0.15 0.025 240;
+    --sidebar-foreground: 0.85 0.02 200;
+    --sidebar-primary: 0.72 0.18 185;
+    --sidebar-primary-foreground: 0.12 0.02 240;
+    --sidebar-accent: 0.22 0.03 240;
+    --sidebar-accent-foreground: 0.85 0.02 200;
+    --sidebar-border: 0.28 0.04 220;
+    --sidebar-ring: 0.72 0.18 185;
+
+    /* Custom Olya tokens */
+    --teal: 0.72 0.18 185;
+    --teal-dim: 0.55 0.14 185;
+    --amber: 0.75 0.18 55;
+    --amber-dim: 0.60 0.14 55;
+    --navy: 0.15 0.025 240;
+    --charcoal: 0.18 0.02 240;
+    --panel-bg: 0.20 0.022 240;
+    --panel-border: 0.30 0.04 220;
+    --glow-teal: 0 0 12px oklch(0.72 0.18 185 / 0.4);
+    --glow-amber: 0 0 12px oklch(0.75 0.18 55 / 0.4);
+  }
+
+  .dark {
+    --background: 0.13 0.02 240;
+    --foreground: 0.92 0.02 200;
+    --card: 0.17 0.022 240;
+    --card-foreground: 0.92 0.02 200;
+    --popover: 0.20 0.025 240;
+    --popover-foreground: 0.92 0.02 200;
+    --primary: 0.72 0.18 185;
+    --primary-foreground: 0.10 0.02 240;
+    --secondary: 0.22 0.03 240;
+    --secondary-foreground: 0.85 0.02 200;
+    --muted: 0.20 0.025 240;
+    --muted-foreground: 0.52 0.04 200;
+    --accent: 0.72 0.18 185;
+    --accent-foreground: 0.10 0.02 240;
+    --destructive: 0.62 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+    --border: 0.28 0.04 220;
+    --input: 0.22 0.03 230;
+    --ring: 0.72 0.18 185;
+
+    --chart-1: 0.72 0.18 185;
+    --chart-2: 0.75 0.18 55;
+    --chart-3: 0.62 0.22 25;
+    --chart-4: 0.65 0.15 280;
+    --chart-5: 0.55 0.12 145;
+
+    --sidebar: 0.12 0.022 240;
+    --sidebar-foreground: 0.85 0.02 200;
+    --sidebar-primary: 0.72 0.18 185;
+    --sidebar-primary-foreground: 0.10 0.02 240;
+    --sidebar-accent: 0.18 0.025 240;
+    --sidebar-accent-foreground: 0.85 0.02 200;
+    --sidebar-border: 0.25 0.04 220;
+    --sidebar-ring: 0.72 0.18 185;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: oklch(0.18 0.02 240);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.35 0.06 200);
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.72 0.18 185 / 0.6);
+  }
+}
+
+@layer components {
+  .panel-base {
+    background: oklch(0.18 0.022 240);
+    border: 1px solid oklch(0.30 0.04 220);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .panel-base::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(oklch(0.72 0.18 185 / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0.72 0.18 185 / 0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+
+  .panel-glow {
+    box-shadow: 0 0 0 1px oklch(0.72 0.18 185 / 0.3), 0 0 20px oklch(0.72 0.18 185 / 0.1);
+  }
+
+  .panel-glow-amber {
+    box-shadow: 0 0 0 1px oklch(0.75 0.18 55 / 0.3), 0 0 20px oklch(0.75 0.18 55 / 0.1);
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid oklch(0.28 0.04 220);
+    background: oklch(0.15 0.022 240 / 0.8);
+  }
+
+  .panel-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: oklch(0.72 0.18 185);
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .teal-text {
+    color: oklch(0.72 0.18 185);
+  }
+
+  .amber-text {
+    color: oklch(0.75 0.18 55);
+  }
+
+  .scan-line {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scan-line::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, oklch(0.72 0.18 185 / 0.4), transparent);
+    animation: scan 4s linear infinite;
+  }
+
+  @keyframes scan {
+    0% { top: -2px; }
+    100% { top: 100%; }
+  }
+
+  @keyframes pulse-teal {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .blink {
+    animation: blink 1s step-end infinite;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: oklch(0.72 0.18 185);
+    box-shadow: 0 0 6px oklch(0.72 0.18 185);
+    animation: pulse-teal 2s ease-in-out infinite;
+  }
+
+  .status-dot-amber {
+    background: oklch(0.75 0.18 55);
+    box-shadow: 0 0 6px oklch(0.75 0.18 55);
+  }
+
+  .status-dot-red {
+    background: oklch(0.62 0.22 25);
+    box-shadow: 0 0 6px oklch(0.62 0.22 25);
+  }
+
+  .status-dot-green {
+    background: oklch(0.65 0.18 145);
+    box-shadow: 0 0 6px oklch(0.65 0.18 145);
+  }
+
+  .corner-bracket {
+    position: relative;
+  }
+
+  .corner-bracket::before,
+  .corner-bracket::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-color: oklch(0.72 0.18 185 / 0.6);
+    border-style: solid;
+  }
+
+  .corner-bracket::before {
+    top: 0;
+    left: 0;
+    border-width: 1px 0 0 1px;
+  }
+
+  .corner-bracket::after {
+    bottom: 0;
+    right: 0;
+    border-width: 0 1px 1px 0;
+  }
+}
