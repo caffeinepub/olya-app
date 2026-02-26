@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Sparkles, RefreshCw, ShieldAlert, Brain } from 'lucide-react';
+import { Sparkles, RefreshCw, Brain } from 'lucide-react';
 import type { TranscriptEntry, StrategyRecommendation } from '../hooks/useDashboardState';
 import { generateStrategiesFromEntries } from '../utils/strategySimulator';
 import { useAddStrategyRecommendation } from '../hooks/useQueries';
@@ -33,16 +33,15 @@ export default function StrategyEnginePanel({ latestEntry, entries }: StrategyEn
     if (entries.length === 0) return;
     setIsGenerating(true);
     try {
-      // Simulate async generation
       await new Promise((r) => setTimeout(r, 400));
-      const trustLevel = 50; // Could be derived from beliefState if passed as prop
+      const trustLevel = 50;
       const persuasionScore = 0;
       const generated = generateStrategiesFromEntries(entries, trustLevel, persuasionScore);
       setStrategies(generated);
 
-      // Save top strategy to backend
+      // Save top strategy to backend (fire-and-forget, best effort)
       if (generated.length > 0) {
-        await addStrategy.mutateAsync({
+        addStrategy.mutate({
           sessionId: 'current',
           strategy: generated[0].strategy,
         });
@@ -109,13 +108,24 @@ export default function StrategyEnginePanel({ latestEntry, entries }: StrategyEn
         </div>
       )}
 
-      {/* Ethics guard notice */}
-      {latestEntry && latestEntry.toxicityFlags.length > 0 && (
-        <div className="flex items-start gap-2 rounded-lg bg-destructive/10 border border-destructive/20 p-2">
-          <ShieldAlert className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-          <p className="text-xs text-destructive">
-            Ethics violation detected. Strategies filtered for compliance.
+      {/* Latest entry context */}
+      {latestEntry && (
+        <div className="rounded-lg bg-muted/30 p-2 space-y-1">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Latest Context
           </p>
+          <div className="flex flex-wrap gap-1">
+            {latestEntry.emotions.slice(0, 2).map((e) => (
+              <Badge key={e.emotionType} variant="secondary" className="text-xs capitalize">
+                {e.emotionType}
+              </Badge>
+            ))}
+            {latestEntry.intents.slice(0, 2).map((i) => (
+              <Badge key={i.intentType} variant="outline" className="text-xs capitalize">
+                {i.intentType.replace(/-/g, ' ')}
+              </Badge>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -1,24 +1,82 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
-  "summary": "New project",
+  "projectStateVersion": 7,
+  "summary": "App with multi-language support: users can download the manual in different languages, and validation prompts and instructions display in the user-selected language.",
   "architectural_notes": [],
   "known_issues": [
-    "New sessions cannot be created"
+    "Trash/delete icon does not appear on session cards; sessions cannot be deleted",
+    "New Session button is not functional"
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-investigate-and-fix-the-bug-preventing-new-conversation-sessions-from-being-created-identify-whether-the-failure-originates-in-the-backend-createsession-call-the-react-query-mutation-in-usequeries-ts-or-the-session-creation-handler-in-dashboard-tsx-and-restore-full-session-creation-functionality",
-      "title": "Investigate and fix the bug preventing new conversation sessions from being created. Identify whether the failure originates in the backend `createSession` call, the React Query mutation in `useQueries.ts`, or the session creation handler in `Dashboard.tsx`, and restore full session creation functionality.",
+      "id": "feature-fix-the-session-card-in-sessionmanager-so-that-a-trash-delete-icon-button-is-visibly-rendered-on-the-right-side-of-each-session-card-the-button-must-be-always-visible-or-visible-on-hover-and-must-call-the-existing-delete-session-handler-when-clicked-allowing-users-to-delete-sessions",
+      "title": "Fix the session card in SessionManager so that a trash/delete icon button is visibly rendered on the right side of each session card. The button must be always visible (or visible on hover) and must call the existing delete session handler when clicked, allowing users to delete sessions.",
       "reqIds": [
-        "REQ-1"
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-new-session-button-in-sessionmanager-so-that-clicking-it-creates-a-new-session-the-button-must-trigger-the-session-creation-handler-e-g-calling-the-backend-createsession-mutation-via-the-existing-usequeries-hook-update-the-session-list-in-the-ui-and-select-the-newly-created-session-as-the-active-session",
+      "title": "Fix the New Session button in SessionManager so that clicking it creates a new session. The button must trigger the session creation handler (e.g., calling the backend createSession mutation via the existing useQueries hook), update the session list in the UI, and select the newly created session as the active session.",
+      "reqIds": [
+        "REQ-5"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix: New sessions cannot be created",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Allow user to download manual in different languages",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Validation prompts and instructions should display in user-selected language",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Add a language selector and download button to the UserManual page (frontend/src/pages/UserManual.tsx) that allows users to select a language and download the manual as a PDF or printable HTML in the chosen language. The language options must be drawn from the existing 41-language list in frontend/src/data/languages.ts. The manual content (all section headings, body text, table of contents entries) must be rendered in the selected language using translations from frontend/src/i18n/translations.ts, and the downloaded file must reflect that language.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Extend the translation dictionary in frontend/src/i18n/translations.ts to include all user-facing manual content strings (section titles, body paragraphs, table of contents entries) for all 41 supported languages, so that the manual can be fully rendered in any supported language.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Ensure all validation prompts (form errors, required-field notices, confirmation dialogs) and instructional text (tooltips, placeholder text, helper messages) across the application use the useTranslation hook and display in the user's currently selected app language from useAppLanguagePreference. Audit components including ProfileSetupModal, TranscriptInput, SessionManager, and AppHeader for any hardcoded English validation or instructional strings and replace them with translated equivalents via the t() function.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Fix missing trash/delete icon on session cards so users can delete sessions",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Fix the New Session button which is not working",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Olya Negotiation Coach",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -7,7 +7,6 @@ import {
   Outlet,
 } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useActor } from './hooks/useActor';
@@ -21,6 +20,7 @@ import ProfileSetupModal from './components/ProfileSetupModal';
 import { AppLanguageSelectorFull } from './components/AppLanguageSelector';
 import Dashboard from './pages/Dashboard';
 import UserManual from './pages/UserManual';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -142,7 +142,7 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <AppContent />
         <Toaster />

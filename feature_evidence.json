@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-investigate-and-fix-the-bug-preventing-new-conversation-sessions-from-being-created-identify-whether-the-failure-originates-in-the-backend-createsession-call-the-react-query-mutation-in-usequeries-ts-or-the-session-creation-handler-in-dashboard-tsx-and-restore-full-session-creation-functionality",
-      "featureTitle": "Investigate and fix the bug preventing new conversation sessions from being created. Identify whether the failure originates in the backend `createSession` call, the React Query mutation in `useQueries.ts`, or the session creation handler in `Dashboard.tsx`, and restore full session creation functionality.",
+      "featureId": "feature-fix-the-new-session-button-in-sessionmanager-so-that-clicking-it-creates-a-new-session-the-button-must-trigger-the-session-creation-handler-e-g-calling-the-backend-createsession-mutation-via-the-existing-usequeries-hook-update-the-session-list-in-the-ui-and-select-the-newly-created-session-as-the-active-session",
+      "featureTitle": "Fix the New Session button in SessionManager so that clicking it creates a new session. The button must trigger the session creation handler (e.g., calling the backend createSession mutation via the existing useQueries hook), update the session list in the UI, and select the newly created session as the active session.",
       "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/pages/Dashboard.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -16,7 +16,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-5"
       ],
       "confidence": "high"
     }

@@ -1,33 +1,28 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix: New sessions cannot be created",
+  "title": "Fix New Session button not working in SessionManager",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Investigate and fix the bug preventing new conversation sessions from being created in the frontend session creation flow",
+      "id": "REQ-5",
+      "summary": "Fix the New Session button in SessionManager so that clicking it creates a new session, updates the session list, and selects the newly created session as active",
       "acceptanceCriteria": [
-        "Clicking the 'New Session' (or equivalent) button in the SessionManager successfully creates a new session.",
-        "The newly created session appears immediately in the session list without requiring a page refresh.",
-        "The newly created session becomes the active session.",
-        "No errors are thrown in the browser console or backend logs when creating a session.",
-        "Session creation works for both authenticated and guest users if both flows are supported."
+        "Clicking the New Session button invokes the session creation handler without errors.",
+        "A new session appears in the session list immediately after clicking the button.",
+        "The newly created session is automatically selected as the active session.",
+        "The button is not disabled and responds to click events in both authenticated and unauthenticated states (showing appropriate feedback if not logged in).",
+        "No console errors or unhandled promise rejections occur when the button is clicked."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/SessionManager.tsx",
           "operation": "modify",
-          "description": "Review and fix the useCreateSession mutation to ensure it correctly invokes the backend createSession method with the required parameters (sessionId, rawTranscript, transcriptEntries array). Verify that the mutation properly handles the returned ExtendedConversationSession and triggers query invalidation for the sessions list. Ensure error handling is robust and surfaces any backend authorization or validation errors to the caller."
+          "description": "Wire the New Session button to trigger session creation by calling the createSession mutation from useQueries hook. The button handler should generate a unique sessionId, create an empty session with initial transcript entries, invalidate the sessions query to refresh the list, and call the onSelectSession callback with the newly created session. Add proper error handling and loading state feedback. Ensure the button is enabled for authenticated users and shows appropriate feedback for unauthenticated users."
         },
         {
           "path": "frontend/src/pages/Dashboard.tsx",
           "operation": "modify",
-          "description": "Review and fix the session creation handler (typically triggered by a 'New Session' button in SessionManager) to ensure it generates a valid unique sessionId, constructs the initial rawTranscript and transcriptEntries array correctly, and calls the useCreateSession mutation. Verify that upon successful session creation, the new session is set as the active session and the UI updates immediately. Add console logging for debugging if session creation fails. Ensure the handler respects the authorization component's requirement that only authenticated users can create sessions."
-        },
-        {
-          "path": "frontend/src/components/SessionManager.tsx",
-          "operation": "modify",
-          "description": "Review the 'New Session' button and its click handler to ensure it correctly invokes the parent Dashboard's session creation handler. Verify that the button is enabled only when appropriate (user is authenticated per the authorization component requirements) and shows loading state during session creation. Ensure no race conditions exist that could prevent the new session from appearing in the list or becoming active."
+          "description": "Ensure the Dashboard component properly handles the onSelectSession callback from SessionManager to set the newly created session as the active session. Verify that the activeSessionId state is updated when a new session is created, triggering UI updates across all dependent panels. Confirm that the session creation flow integrates seamlessly with existing session selection and management logic."
         }
       ]
     }

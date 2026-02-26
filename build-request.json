@@ -1,37 +1,38 @@
 {
   "kind": "build_request",
-  "title": "Fix: New sessions cannot be created",
+  "title": "Fix New Session button not working in SessionManager",
+  "projectName": "Olya Negotiation Coach",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Investigate and fix the bug preventing new conversation sessions from being created. Identify whether the failure originates in the backend `createSession` call, the React Query mutation in `useQueries.ts`, or the session creation handler in `Dashboard.tsx`, and restore full session creation functionality.",
-      "target": "both",
+      "id": "REQ-5",
+      "text": "Fix the New Session button in SessionManager so that clicking it creates a new session. The button must trigger the session creation handler (e.g., calling the backend createSession mutation via the existing useQueries hook), update the session list in the UI, and select the newly created session as the active session.",
+      "target": "frontend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "New Sessions cannot be created. Fix this problem"
+          "New Session button is not working"
         ]
       },
       "acceptanceCriteria": [
-        "Clicking the 'New Session' (or equivalent) button in the SessionManager successfully creates a new session.",
-        "The newly created session appears immediately in the session list without requiring a page refresh.",
-        "The newly created session becomes the active session.",
-        "No errors are thrown in the browser console or backend logs when creating a session.",
-        "Session creation works for both authenticated and guest users if both flows are supported."
+        "Clicking the New Session button invokes the session creation handler without errors.",
+        "A new session appears in the session list immediately after clicking the button.",
+        "The newly created session is automatically selected as the active session.",
+        "The button is not disabled and responds to click events in both authenticated and unauthenticated states (showing appropriate feedback if not logged in).",
+        "No console errors or unhandled promise rejections occur when the button is clicked."
       ]
     }
   ],
   "constraints": [
-    "Do not alter the app language selection feature that was just fixed.",
-    "Do not break existing session listing, selection, or deletion functionality."
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
+    "Reuse existing session creation query/mutation from frontend/src/hooks/useQueries.ts; do not introduce new backend endpoints."
   ],
   "nonGoals": [
-    "Redesigning the session management UI.",
-    "Adding new session fields or metadata beyond what already exists.",
-    "Changes to transcript entry creation or deletion."
+    "Redesigning the SessionManager UI beyond fixing the button functionality.",
+    "Changes to the session delete (trash icon) feature already addressed in the previous fix.",
+    "Modifying backend session creation logic unless a bug is found there."
   ],
   "imageRequirements": {
     "required": [],

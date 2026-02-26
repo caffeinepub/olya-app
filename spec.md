@@ -1,10 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the bug preventing new conversation sessions from being created.
+**Goal:** Fix the New Session button in SessionManager so it correctly creates and selects a new session.
 
 **Planned changes:**
-- Investigate and fix the session creation failure, tracing the root cause through the backend `createSession` call, the React Query mutation in `useQueries.ts`, and the session creation handler in `Dashboard.tsx`
-- Ensure the newly created session appears immediately in the session list and becomes the active session without a page refresh
+- Wire the New Session button's click handler to invoke the existing `createSession` mutation from `useQueries.ts`.
+- Update the session list in the UI immediately after a new session is created.
+- Automatically select the newly created session as the active session upon creation.
+- Ensure the button is not disabled and responds to click events, providing appropriate feedback when the user is not authenticated.
 
-**User-visible outcome:** Users can successfully create new sessions by clicking the "New Session" button, with the new session appearing instantly in the session list and becoming active.
+**User-visible outcome:** Clicking the New Session button creates a new session, adds it to the session list, and selects it as the active session without errors.

@@ -13,7 +13,10 @@ import List "mo:core/List";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-(actor {
+
+// Correct: Use Migration.run for with clause
+
+actor {
   // Initialize the user system state
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -357,4 +360,4 @@ import AccessControl "authorization/access-control";
     let offset : Nat32 = c.toNat32() - 'A'.toNat32();
     Char.fromNat32('a'.toNat32() + offset);
   };
-});
+};

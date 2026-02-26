@@ -1,14 +1,7 @@
-import React, { useState } from 'react';
-import { toast } from 'sonner';
+import React, { useState, useCallback } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useDashboardState } from '../hooks/useDashboardState';
-import {
-  useGetSessions,
-  useCreateSession,
-  useUpdateSession,
-  useDeleteSession,
-} from '../hooks/useQueries';
-import { useTranslation } from '../hooks/useTranslation';
+import { useActor } from '../hooks/useActor';
+import { useGetSessions, useCreateSession, useDeleteSession, useUpdateSession } from '../hooks/useQueries';
 import AppHeader from '../components/AppHeader';
 import SessionManager from '../components/SessionManager';
 import TranscriptInput from '../components/TranscriptInput';
@@ -20,16 +13,24 @@ import PatternPredictionsPanel from '../components/PatternPredictionsPanel';
 import SafetyQualityPanel from '../components/SafetyQualityPanel';
 import StrategyEnginePanel from '../components/StrategyEnginePanel';
 import SessionSummaryBar from '../components/SessionSummaryBar';
-import { Button } from '@/components/ui/button';
-import { Plus, MessageSquare } from 'lucide-react';
-import type { ExtendedConversationSession } from '../backend';
+import { useDashboardState } from '../hooks/useDashboardState';
 import type { SpeakerRole } from '../hooks/useDashboardState';
+import { ExtendedConversationSession } from '../backend';
+import { Plus, MessageSquare, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function Dashboard() {
   const { identity } = useInternetIdentity();
   const isAuthenticated = !!identity;
-
+  const { isFetching: actorFetching } = useActor();
   const { t } = useTranslation();
+
+  const { data: sessions = [] } = useGetSessions();
+  const createSession = useCreateSession();
+  const deleteSession = useDeleteSession();
+  const updateSession = useUpdateSession();
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [asrEngine, setAsrEngine] = useState<string>('webSpeech');
@@ -44,27 +45,34 @@ export default function Dashboard() {
     clearEntries,
   } = useDashboardState();
 
-  const { data: sessions = [], isLoading: sessionsLoading } = useGetSessions();
-  const createSession = useCreateSession();
-  const updateSession = useUpdateSession();
-  const deleteSession = useDeleteSession();
+  // Button is busy when the mutation is running or the actor is still initializing
+  const isCreatingSession = createSession.isPending || actorFetching;
 
-  void sessionsLoading; // SessionManager handles its own loading state
-
-  const handleNewSession = async () => {
+  const handleNewSession = useCallback(async () => {
     if (!isAuthenticated) {
       toast.error('Please log in to create a new session.');
       return;
     }
 
+    if (actorFetching) {
+      toast.info('Still initializing, please try again in a moment.');
+      return;
+    }
+
+    if (!createSession.isReady) {
+      toast.error('Not ready. Please ensure you are logged in and try again.');
+      return;
+    }
+
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     try {
-      await createSession.mutateAsync({
+      const created = await createSession.mutateAsync({
         sessionId,
         rawTranscript: '',
         transcriptEntries: [],
       });
-      setActiveSessionId(sessionId);
+      const newId = created?.sessionId ?? sessionId;
+      setActiveSessionId(newId);
       clearEntries();
       toast.success('New session created.');
     } catch (err: unknown) {
@@ -72,33 +80,34 @@ export default function Dashboard() {
       console.error('Failed to create session:', err);
       if (message.includes('Unauthorized') || message.includes('Only users')) {
         toast.error('Please log in to create a new session.');
+      } else if (message.includes('Actor not available')) {
+        toast.error('Still initializing. Please try again in a moment.');
       } else {
         toast.error('Failed to create session. Please try again.');
       }
     }
-  };
+  }, [isAuthenticated, actorFetching, createSession, clearEntries]);
 
-  const handleDeleteSession = async (sessionId: string) => {
+  const handleSessionSelect = useCallback((sessionId: string) => {
+    setActiveSessionId(sessionId);
+    clearEntries();
+  }, [clearEntries]);
+
+  const handleDeleteSession = useCallback(async (sessionId: string) => {
     try {
       await deleteSession.mutateAsync(sessionId);
       if (activeSessionId === sessionId) {
         setActiveSessionId(null);
         clearEntries();
       }
+      toast.success('Session deleted.');
     } catch (err) {
       console.error('Failed to delete session:', err);
       toast.error('Failed to delete session. Please try again.');
     }
-  };
+  }, [deleteSession, activeSessionId, clearEntries]);
 
-  const handleSessionSelect = (sessionId: string) => {
-    if (sessionId !== activeSessionId) {
-      setActiveSessionId(sessionId);
-      clearEntries();
-    }
-  };
-
-  const handleAddEntry = async (
+  const handleAddEntry = useCallback(async (
     text: string,
     speaker: SpeakerRole,
     detectedLanguage?: string
@@ -133,7 +142,7 @@ export default function Dashboard() {
         console.error('Failed to update session:', err);
       }
     }
-  };
+  }, [addTranscriptEntry, activeSessionId, transcriptEntries, updateSession]);
 
   const isNlpActive = transcriptEntries.length > 0;
   const isEthicsActive = transcriptEntries.some((e) => e.toxicityFlags.length > 0);
@@ -147,15 +156,19 @@ export default function Dashboard() {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar — hidden on mobile, shown as flex-col on md+ */}
+        {/* Sidebar */}
         <aside className="hidden md:flex md:flex-col w-64 border-r border-border bg-card shrink-0">
           <div className="p-3 border-b border-border">
             <Button
               className="w-full gap-2 text-sm"
               onClick={handleNewSession}
-              disabled={createSession.isPending}
+              disabled={isCreatingSession}
             >
-              <Plus className="w-4 h-4" />
+              {isCreatingSession ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4" />
+              )}
               {t('dashboard.newSession')}
             </Button>
           </div>
@@ -166,7 +179,7 @@ export default function Dashboard() {
               onSessionSelect={handleSessionSelect}
               onNewSession={handleNewSession}
               onDeleteSession={handleDeleteSession}
-              isCreating={createSession.isPending}
+              isCreating={isCreatingSession}
             />
           </div>
         </aside>
@@ -184,10 +197,14 @@ export default function Dashboard() {
               </div>
               <Button
                 onClick={handleNewSession}
-                disabled={createSession.isPending}
+                disabled={isCreatingSession}
                 className="gap-2"
               >
-                <Plus className="w-4 h-4" />
+                {isCreatingSession ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4" />
+                )}
                 {t('dashboard.newSession')}
               </Button>
               {/* Mobile session list */}
@@ -198,7 +215,7 @@ export default function Dashboard() {
                   onSessionSelect={handleSessionSelect}
                   onNewSession={handleNewSession}
                   onDeleteSession={handleDeleteSession}
-                  isCreating={createSession.isPending}
+                  isCreating={isCreatingSession}
                 />
               </div>
             </div>

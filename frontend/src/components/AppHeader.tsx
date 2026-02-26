@@ -1,11 +1,13 @@
 import React from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { BookOpen, Activity, Shield } from 'lucide-react';
+import { BookOpen, Activity, Shield, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import LoginButton from './LoginButton';
 import { AppLanguageSelectorCompact } from './AppLanguageSelector';
 import { useTranslation } from '../hooks/useTranslation';
+import ThemeSettingsPanel from './ThemeSettingsPanel';
 
 interface AppHeaderProps {
   asrEngine?: string;
@@ -70,6 +72,29 @@ export default function AppHeader({ asrEngine = 'webSpeech', isNlpActive = false
             <BookOpen className="w-3.5 h-3.5" />
             {t('header.userManual')}
           </Button>
+
+          {/* Theme Settings Popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                aria-label="App Visual Theme"
+                title="App Visual Theme"
+              >
+                <Palette className="w-4 h-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              sideOffset={8}
+              className="p-0 w-auto border-border bg-popover shadow-lg"
+            >
+              <ThemeSettingsPanel />
+            </PopoverContent>
+          </Popover>
+
           <AppLanguageSelectorCompact />
           <LoginButton />
         </div>

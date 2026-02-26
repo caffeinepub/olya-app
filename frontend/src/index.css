@@ -5,10 +5,10 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Default: Ocean Teal (dark) ── */
   :root {
     --radius: 0.25rem;
 
-    /* Light mode (not primary use case, but defined) */
     --background: 0.18 0.02 240;
     --foreground: 0.92 0.02 200;
     --card: 0.22 0.025 240;
@@ -57,6 +57,7 @@
     --glow-amber: 0 0 12px oklch(0.75 0.18 55 / 0.4);
   }
 
+  /* ── Ocean Teal: Dark mode ── */
   .dark {
     --background: 0.13 0.02 240;
     --foreground: 0.92 0.02 200;
@@ -92,6 +93,249 @@
     --sidebar-accent-foreground: 0.85 0.02 200;
     --sidebar-border: 0.25 0.04 220;
     --sidebar-ring: 0.72 0.18 185;
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     MIDNIGHT SLATE THEME
+     Cool slate-blue with violet/indigo accents
+  ══════════════════════════════════════════════════════════ */
+
+  /* Midnight Slate: Light mode */
+  [data-theme='midnight-slate'] {
+    --background: 0.94 0.01 260;
+    --foreground: 0.18 0.02 260;
+    --card: 0.97 0.008 260;
+    --card-foreground: 0.18 0.02 260;
+    --popover: 0.97 0.008 260;
+    --popover-foreground: 0.18 0.02 260;
+    --primary: 0.55 0.22 270;
+    --primary-foreground: 0.98 0.005 260;
+    --secondary: 0.88 0.015 260;
+    --secondary-foreground: 0.25 0.02 260;
+    --muted: 0.90 0.012 260;
+    --muted-foreground: 0.48 0.04 260;
+    --accent: 0.55 0.22 270;
+    --accent-foreground: 0.98 0.005 260;
+    --destructive: 0.62 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+    --border: 0.82 0.02 260;
+    --input: 0.88 0.015 260;
+    --ring: 0.55 0.22 270;
+
+    --chart-1: 0.55 0.22 270;
+    --chart-2: 0.65 0.18 220;
+    --chart-3: 0.62 0.22 25;
+    --chart-4: 0.60 0.20 300;
+    --chart-5: 0.55 0.16 200;
+
+    --sidebar: 0.90 0.012 260;
+    --sidebar-foreground: 0.22 0.02 260;
+    --sidebar-primary: 0.55 0.22 270;
+    --sidebar-primary-foreground: 0.98 0.005 260;
+    --sidebar-accent: 0.86 0.015 260;
+    --sidebar-accent-foreground: 0.22 0.02 260;
+    --sidebar-border: 0.80 0.02 260;
+    --sidebar-ring: 0.55 0.22 270;
+  }
+
+  /* Midnight Slate: Dark mode */
+  [data-theme='midnight-slate'].dark {
+    --background: 0.11 0.015 260;
+    --foreground: 0.92 0.01 260;
+    --card: 0.15 0.018 260;
+    --card-foreground: 0.92 0.01 260;
+    --popover: 0.17 0.018 260;
+    --popover-foreground: 0.92 0.01 260;
+    --primary: 0.68 0.22 270;
+    --primary-foreground: 0.10 0.015 260;
+    --secondary: 0.20 0.025 260;
+    --secondary-foreground: 0.85 0.01 260;
+    --muted: 0.18 0.02 260;
+    --muted-foreground: 0.52 0.04 260;
+    --accent: 0.68 0.22 270;
+    --accent-foreground: 0.10 0.015 260;
+    --destructive: 0.62 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+    --border: 0.26 0.03 260;
+    --input: 0.20 0.025 260;
+    --ring: 0.68 0.22 270;
+
+    --chart-1: 0.68 0.22 270;
+    --chart-2: 0.72 0.18 220;
+    --chart-3: 0.62 0.22 25;
+    --chart-4: 0.65 0.20 300;
+    --chart-5: 0.58 0.16 200;
+
+    --sidebar: 0.09 0.015 260;
+    --sidebar-foreground: 0.85 0.01 260;
+    --sidebar-primary: 0.68 0.22 270;
+    --sidebar-primary-foreground: 0.10 0.015 260;
+    --sidebar-accent: 0.16 0.02 260;
+    --sidebar-accent-foreground: 0.85 0.01 260;
+    --sidebar-border: 0.22 0.03 260;
+    --sidebar-ring: 0.68 0.22 270;
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     EMBER AMBER THEME
+     Warm dark charcoal with amber/orange fire accents
+  ══════════════════════════════════════════════════════════ */
+
+  /* Ember Amber: Light mode */
+  [data-theme='ember-amber'] {
+    --background: 0.96 0.01 45;
+    --foreground: 0.18 0.025 30;
+    --card: 0.98 0.008 45;
+    --card-foreground: 0.18 0.025 30;
+    --popover: 0.98 0.008 45;
+    --popover-foreground: 0.18 0.025 30;
+    --primary: 0.72 0.22 55;
+    --primary-foreground: 0.12 0.02 30;
+    --secondary: 0.90 0.015 45;
+    --secondary-foreground: 0.25 0.025 30;
+    --muted: 0.92 0.012 45;
+    --muted-foreground: 0.48 0.05 40;
+    --accent: 0.72 0.22 55;
+    --accent-foreground: 0.12 0.02 30;
+    --destructive: 0.62 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+    --border: 0.84 0.02 45;
+    --input: 0.90 0.015 45;
+    --ring: 0.72 0.22 55;
+
+    --chart-1: 0.72 0.22 55;
+    --chart-2: 0.70 0.22 25;
+    --chart-3: 0.65 0.18 80;
+    --chart-4: 0.60 0.20 15;
+    --chart-5: 0.55 0.16 100;
+
+    --sidebar: 0.92 0.012 45;
+    --sidebar-foreground: 0.22 0.025 30;
+    --sidebar-primary: 0.72 0.22 55;
+    --sidebar-primary-foreground: 0.12 0.02 30;
+    --sidebar-accent: 0.88 0.015 45;
+    --sidebar-accent-foreground: 0.22 0.025 30;
+    --sidebar-border: 0.82 0.02 45;
+    --sidebar-ring: 0.72 0.22 55;
+  }
+
+  /* Ember Amber: Dark mode */
+  [data-theme='ember-amber'].dark {
+    --background: 0.12 0.02 30;
+    --foreground: 0.92 0.015 45;
+    --card: 0.16 0.022 30;
+    --card-foreground: 0.92 0.015 45;
+    --popover: 0.18 0.022 30;
+    --popover-foreground: 0.92 0.015 45;
+    --primary: 0.78 0.22 55;
+    --primary-foreground: 0.10 0.02 30;
+    --secondary: 0.22 0.03 30;
+    --secondary-foreground: 0.85 0.015 45;
+    --muted: 0.20 0.025 30;
+    --muted-foreground: 0.52 0.05 40;
+    --accent: 0.78 0.22 55;
+    --accent-foreground: 0.10 0.02 30;
+    --destructive: 0.62 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+    --border: 0.28 0.04 30;
+    --input: 0.22 0.03 30;
+    --ring: 0.78 0.22 55;
+
+    --chart-1: 0.78 0.22 55;
+    --chart-2: 0.70 0.22 25;
+    --chart-3: 0.65 0.18 80;
+    --chart-4: 0.62 0.20 15;
+    --chart-5: 0.58 0.16 100;
+
+    --sidebar: 0.10 0.02 30;
+    --sidebar-foreground: 0.85 0.015 45;
+    --sidebar-primary: 0.78 0.22 55;
+    --sidebar-primary-foreground: 0.10 0.02 30;
+    --sidebar-accent: 0.18 0.025 30;
+    --sidebar-accent-foreground: 0.85 0.015 45;
+    --sidebar-border: 0.24 0.04 30;
+    --sidebar-ring: 0.78 0.22 55;
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     FOREST GREEN THEME
+     Rich forest dark with emerald and sage accents
+  ══════════════════════════════════════════════════════════ */
+
+  /* Forest Green: Light mode */
+  [data-theme='forest-green'] {
+    --background: 0.95 0.012 155;
+    --foreground: 0.16 0.025 155;
+    --card: 0.97 0.008 155;
+    --card-foreground: 0.16 0.025 155;
+    --popover: 0.97 0.008 155;
+    --popover-foreground: 0.16 0.025 155;
+    --primary: 0.60 0.20 145;
+    --primary-foreground: 0.98 0.005 155;
+    --secondary: 0.88 0.015 155;
+    --secondary-foreground: 0.22 0.025 155;
+    --muted: 0.90 0.012 155;
+    --muted-foreground: 0.46 0.05 155;
+    --accent: 0.60 0.20 145;
+    --accent-foreground: 0.98 0.005 155;
+    --destructive: 0.62 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+    --border: 0.82 0.02 155;
+    --input: 0.88 0.015 155;
+    --ring: 0.60 0.20 145;
+
+    --chart-1: 0.60 0.20 145;
+    --chart-2: 0.65 0.18 185;
+    --chart-3: 0.62 0.22 25;
+    --chart-4: 0.58 0.16 120;
+    --chart-5: 0.55 0.14 170;
+
+    --sidebar: 0.90 0.012 155;
+    --sidebar-foreground: 0.20 0.025 155;
+    --sidebar-primary: 0.60 0.20 145;
+    --sidebar-primary-foreground: 0.98 0.005 155;
+    --sidebar-accent: 0.86 0.015 155;
+    --sidebar-accent-foreground: 0.20 0.025 155;
+    --sidebar-border: 0.80 0.02 155;
+    --sidebar-ring: 0.60 0.20 145;
+  }
+
+  /* Forest Green: Dark mode */
+  [data-theme='forest-green'].dark {
+    --background: 0.11 0.018 155;
+    --foreground: 0.92 0.012 155;
+    --card: 0.15 0.020 155;
+    --card-foreground: 0.92 0.012 155;
+    --popover: 0.17 0.020 155;
+    --popover-foreground: 0.92 0.012 155;
+    --primary: 0.65 0.20 145;
+    --primary-foreground: 0.10 0.018 155;
+    --secondary: 0.20 0.025 155;
+    --secondary-foreground: 0.85 0.012 155;
+    --muted: 0.18 0.022 155;
+    --muted-foreground: 0.50 0.05 155;
+    --accent: 0.65 0.20 145;
+    --accent-foreground: 0.10 0.018 155;
+    --destructive: 0.62 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+    --border: 0.26 0.03 155;
+    --input: 0.20 0.025 155;
+    --ring: 0.65 0.20 145;
+
+    --chart-1: 0.65 0.20 145;
+    --chart-2: 0.68 0.18 185;
+    --chart-3: 0.62 0.22 25;
+    --chart-4: 0.60 0.16 120;
+    --chart-5: 0.55 0.14 170;
+
+    --sidebar: 0.09 0.018 155;
+    --sidebar-foreground: 0.85 0.012 155;
+    --sidebar-primary: 0.65 0.20 145;
+    --sidebar-primary-foreground: 0.10 0.018 155;
+    --sidebar-accent: 0.16 0.022 155;
+    --sidebar-accent-foreground: 0.85 0.012 155;
+    --sidebar-border: 0.22 0.03 155;
+    --sidebar-ring: 0.65 0.20 145;
   }
 
   * {
