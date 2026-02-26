@@ -1,157 +1,123 @@
 import React from 'react';
-import { AlertTriangle, AlertCircle, ShieldAlert, Shield } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Shield, AlertTriangle, CheckCircle, Activity } from 'lucide-react';
+import type { TranscriptEntry } from '../hooks/useDashboardState';
 
 interface SafetyQualityPanelProps {
-  biasCount: number;
-  hallucinationFlagRate: number;
-  ethicalViolationCount: number;
-  trustworthinessScore: number;
+  entries: TranscriptEntry[];
 }
 
-function MetricCard({
-  icon,
-  label,
-  value,
-  unit,
-  colorClass,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  unit?: string;
-  colorClass: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border/40 bg-card/30 p-2.5 flex flex-col gap-1">
-      <div className="flex items-center gap-1.5">
-        <span className={cn('shrink-0', colorClass)}>{icon}</span>
-        <span className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground/60">
-          {label}
-        </span>
-      </div>
-      <div className="flex items-baseline gap-1">
-        <span className={cn('text-xl font-mono font-bold', colorClass)}>{value}</span>
-        {unit && (
-          <span className="text-[10px] font-mono text-muted-foreground/50">{unit}</span>
-        )}
-      </div>
-    </div>
-  );
+function computeMetrics(entries: TranscriptEntry[]) {
+  if (entries.length === 0) {
+    return {
+      biasIncidents: 0,
+      hallucinationRate: 0,
+      ethicalViolations: 0,
+      trustworthinessScore: 100,
+    };
+  }
+
+  const biasIncidents = entries.filter((e) =>
+    e.toxicityFlags.some((f) => f.flagType.includes('bias'))
+  ).length;
+
+  const ethicalViolations = entries.filter((e) => e.toxicityFlags.length > 0).length;
+
+  const hallucinationRate = Math.round((ethicalViolations / entries.length) * 100);
+
+  // Trustworthiness: start at 100, penalize for violations
+  const biaspenalty = biasIncidents * 5;
+  const violationPenalty = ethicalViolations * 8;
+  const trustworthinessScore = Math.max(0, 100 - biaspenalty - violationPenalty);
+
+  return { biasIncidents, hallucinationRate, ethicalViolations, trustworthinessScore };
 }
 
-function TrustworthinessGauge({ score }: { score: number }) {
-  const color =
-    score >= 80
-      ? 'oklch(0.65 0.18 145)'
-      : score >= 50
-      ? 'oklch(0.75 0.18 55)'
-      : 'oklch(0.62 0.22 25)';
+export default function SafetyQualityPanel({ entries }: SafetyQualityPanelProps) {
+  const { biasIncidents, hallucinationRate, ethicalViolations, trustworthinessScore } = computeMetrics(entries);
 
-  const textColor =
-    score >= 80 ? 'text-green-400' : score >= 50 ? 'text-amber' : 'text-red-400';
+  const trustColor =
+    trustworthinessScore >= 80 ? 'text-green-500' :
+    trustworthinessScore >= 50 ? 'text-yellow-500' :
+    'text-red-500';
 
-  const label =
-    score >= 80 ? 'Trustworthy' : score >= 50 ? 'Caution' : 'Low Trust';
-
-  return (
-    <div className="rounded-lg border border-border/40 bg-card/30 p-2.5 flex flex-col gap-2">
-      <div className="flex items-center gap-1.5">
-        <Shield size={12} className={textColor} />
-        <span className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground/60">
-          Trustworthiness Score
-        </span>
-      </div>
-      <div className="flex items-center gap-3">
-        {/* Circular gauge */}
-        <div className="relative w-12 h-12 shrink-0">
-          <svg viewBox="0 0 48 48" className="w-full h-full -rotate-90">
-            <circle
-              cx="24"
-              cy="24"
-              r="20"
-              fill="none"
-              stroke="oklch(0.28 0.04 220)"
-              strokeWidth="4"
-            />
-            <circle
-              cx="24"
-              cy="24"
-              r="20"
-              fill="none"
-              stroke={color}
-              strokeWidth="4"
-              strokeDasharray={`${(score / 100) * 125.66} 125.66`}
-              strokeLinecap="round"
-              style={{ transition: 'stroke-dasharray 0.6s ease' }}
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-[10px] font-mono font-bold" style={{ color }}>
-              {score}
-            </span>
-          </div>
-        </div>
-        <div>
-          <p className={cn('text-sm font-mono font-bold', textColor)}>{label}</p>
-          <p className="text-[9px] font-mono text-muted-foreground/50 mt-0.5">
-            Score out of 100
-          </p>
-          <div className="mt-1.5 w-24">
-            <Progress value={score} className="h-1" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function SafetyQualityPanel({
-  biasCount,
-  hallucinationFlagRate,
-  ethicalViolationCount,
-  trustworthinessScore,
-}: SafetyQualityPanelProps) {
   const biasColor =
-    biasCount === 0 ? 'text-green-400' : biasCount <= 3 ? 'text-amber' : 'text-red-400';
-  const hallucinationColor =
-    hallucinationFlagRate === 0
-      ? 'text-green-400'
-      : hallucinationFlagRate <= 20
-      ? 'text-amber'
-      : 'text-red-400';
-  const violationColor =
-    ethicalViolationCount === 0
-      ? 'text-green-400'
-      : ethicalViolationCount <= 3
-      ? 'text-amber'
-      : 'text-red-400';
+    biasIncidents === 0 ? 'text-green-500' :
+    biasIncidents <= 3 ? 'text-yellow-500' :
+    'text-red-500';
 
   return (
-    <div className="flex flex-col gap-2 p-3 h-full overflow-y-auto">
-      <div className="grid grid-cols-2 gap-2">
-        <MetricCard
-          icon={<AlertTriangle size={11} />}
-          label="Bias Incidents"
-          value={biasCount}
-          colorClass={biasColor}
-        />
-        <MetricCard
-          icon={<AlertCircle size={11} />}
-          label="Hallucination Rate"
-          value={Math.round(hallucinationFlagRate)}
-          unit="%"
-          colorClass={hallucinationColor}
-        />
-        <MetricCard
-          icon={<ShieldAlert size={11} />}
-          label="Ethical Violations"
-          value={ethicalViolationCount}
-          colorClass={violationColor}
-        />
-        <TrustworthinessGauge score={trustworthinessScore} />
+    <div className="space-y-4">
+      {/* Metrics grid */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Bias Incidents */}
+        <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+          <div className="flex items-center gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">Bias Incidents</p>
+          </div>
+          <p className={`text-2xl font-bold ${biasColor}`}>{biasIncidents}</p>
+        </div>
+
+        {/* Hallucination Flag Rate */}
+        <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+          <div className="flex items-center gap-1.5">
+            <Activity className="w-3.5 h-3.5 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">Flag Rate</p>
+          </div>
+          <p className={`text-2xl font-bold ${hallucinationRate > 20 ? 'text-red-500' : hallucinationRate > 10 ? 'text-yellow-500' : 'text-green-500'}`}>
+            {hallucinationRate}%
+          </p>
+        </div>
+
+        {/* Ethical Violations */}
+        <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+          <div className="flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">Violations</p>
+          </div>
+          <p className={`text-2xl font-bold ${ethicalViolations === 0 ? 'text-green-500' : ethicalViolations <= 2 ? 'text-yellow-500' : 'text-red-500'}`}>
+            {ethicalViolations}
+          </p>
+        </div>
+
+        {/* Trustworthiness Score */}
+        <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+          <div className="flex items-center gap-1.5">
+            <CheckCircle className="w-3.5 h-3.5 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">Trust Score</p>
+          </div>
+          <p className={`text-2xl font-bold ${trustColor}`}>{trustworthinessScore}</p>
+        </div>
       </div>
+
+      {/* Status badges */}
+      <div className="flex flex-wrap gap-2">
+        <Badge
+          variant={biasIncidents === 0 ? 'default' : 'destructive'}
+          className="text-xs"
+        >
+          {biasIncidents === 0 ? 'Bias-Free' : `${biasIncidents} Bias Alert${biasIncidents > 1 ? 's' : ''}`}
+        </Badge>
+        <Badge
+          variant={ethicalViolations === 0 ? 'default' : 'destructive'}
+          className="text-xs"
+        >
+          {ethicalViolations === 0 ? 'Ethics OK' : `${ethicalViolations} Violation${ethicalViolations > 1 ? 's' : ''}`}
+        </Badge>
+        <Badge
+          variant={trustworthinessScore >= 80 ? 'default' : 'secondary'}
+          className="text-xs"
+        >
+          Trust: {trustworthinessScore}/100
+        </Badge>
+      </div>
+
+      {entries.length === 0 && (
+        <p className="text-xs text-muted-foreground text-center">
+          Add transcript entries to see safety metrics.
+        </p>
+      )}
     </div>
   );
 }

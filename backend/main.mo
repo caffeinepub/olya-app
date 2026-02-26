@@ -9,12 +9,11 @@ import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
 import Float "mo:core/Float";
 import List "mo:core/List";
-import Migration "migration";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-(with migration = Migration.run)
-actor {
+(actor {
   // Initialize the user system state
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -67,11 +66,17 @@ actor {
     count : Nat;
   };
 
+  public type TranscriptEntry = {
+    text : Text;
+    detectedLanguage : Text;
+  };
+
   public type ExtendedConversationSession = {
     sessionId : Text;
     owner : Principal;
     timestamp : Time.Time;
     rawTranscript : Text;
+    transcriptEntries : [TranscriptEntry];
     patterns : [ConversationPattern];
     biasLog : [BiasCategory];
     ethicalViolations : [EthicalViolation];
@@ -125,7 +130,7 @@ actor {
   };
 
   /// Create session with ethics checks (users only)
-  public shared ({ caller }) func createSession(sessionId : Text, rawTranscript : Text) : async ExtendedConversationSession {
+  public shared ({ caller }) func createSession(sessionId : Text, rawTranscript : Text, transcriptEntries : [TranscriptEntry]) : async ExtendedConversationSession {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create sessions");
     };
@@ -139,6 +144,7 @@ actor {
       owner = caller;
       timestamp = Time.now();
       rawTranscript;
+      transcriptEntries;
       patterns = [];
       biasLog = [];
       ethicalViolations = [];
@@ -149,7 +155,7 @@ actor {
   };
 
   /// Update session transcript and patterns (owner only)
-  public shared ({ caller }) func updateSession(sessionId : Text, rawTranscript : Text, patterns : [ConversationPattern]) : async () {
+  public shared ({ caller }) func updateSession(sessionId : Text, rawTranscript : Text, transcriptEntries : [TranscriptEntry], patterns : [ConversationPattern]) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update sessions");
     };
@@ -164,6 +170,7 @@ actor {
       owner = existing.owner;
       timestamp = Time.now();
       rawTranscript;
+      transcriptEntries;
       patterns;
       biasLog = biasLog.toArray();
       ethicalViolations = ethicalViolations.toArray();
@@ -350,5 +357,4 @@ actor {
     let offset : Nat32 = c.toNat32() - 'A'.toNat32();
     Char.fromNat32('a'.toNat32() + offset);
   };
-};
-
+});

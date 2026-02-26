@@ -1,148 +1,156 @@
 import React, { useState } from 'react';
-import { Plus, BarChart2, Trash2, ChevronRight, Loader2 } from 'lucide-react';
+import { Plus, Trash2, MessageSquare, Clock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useGetSessionsByTimestamp, useDeleteSession } from '../hooks/useQueries';
-import { useActor } from '../hooks/useActor';
+import { Badge } from '@/components/ui/badge';
 import type { ExtendedConversationSession } from '../backend';
-import { cn } from '@/lib/utils';
 
 interface SessionManagerProps {
-  currentSessionId: string | null;
+  sessions: ExtendedConversationSession[];
+  activeSessionId: string | null;
+  onSessionSelect: (sessionId: string) => void;
   onNewSession: () => void;
-  onSelectSession: (sessionId: string) => void;
+  onDeleteSession: (sessionId: string) => void;
   isCreating?: boolean;
 }
 
-function formatTimeAgo(timestamp: bigint): string {
-  const nowNs = BigInt(Date.now()) * BigInt(1_000_000);
-  const diffMs = Number((nowNs - timestamp) / BigInt(1_000_000));
-  if (diffMs < 0) return 'just now';
-  if (diffMs < 60000) return `${Math.floor(diffMs / 1000)}s ago`;
-  if (diffMs < 3600000) return `${Math.floor(diffMs / 60000)}m ago`;
-  if (diffMs < 86400000) return `${Math.floor(diffMs / 3600000)}h ago`;
-  return `${Math.floor(diffMs / 86400000)}d ago`;
+function formatTimestamp(timestamp: bigint): string {
+  const ms = Number(timestamp) / 1_000_000;
+  const date = new Date(ms);
+  return date.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
-function getSessionHealthColor(session: ExtendedConversationSession): string {
-  const hasEthicalViolations = session.ethicalViolations.length > 0;
-  if (hasEthicalViolations) return 'text-red-400';
-  if (session.patterns.length >= 3) return 'text-teal';
-  return 'text-amber';
-}
-
-function getSessionHealthLabel(session: ExtendedConversationSession): string {
-  const hasEthicalViolations = session.ethicalViolations.length > 0;
-  if (hasEthicalViolations) return 'Critical';
-  if (session.patterns.length >= 3) return 'Active';
-  return 'Pending';
+function getSessionPreview(session: ExtendedConversationSession): string {
+  if (session.rawTranscript && session.rawTranscript.trim().length > 0) {
+    return session.rawTranscript.slice(0, 60) + (session.rawTranscript.length > 60 ? '…' : '');
+  }
+  return 'Empty session';
 }
 
 export default function SessionManager({
-  currentSessionId,
+  sessions,
+  activeSessionId,
+  onSessionSelect,
   onNewSession,
-  onSelectSession,
+  onDeleteSession,
   isCreating = false,
 }: SessionManagerProps) {
-  const { actor, isFetching: actorFetching } = useActor();
-  const actorReady = !!actor && !actorFetching;
-  const { data: sessions, isLoading } = useGetSessionsByTimestamp();
-  const deleteSession = useDeleteSession();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDelete = async (e: React.MouseEvent, sessionId: string) => {
     e.stopPropagation();
     setDeletingId(sessionId);
     try {
-      await deleteSession.mutateAsync(sessionId);
+      await onDeleteSession(sessionId);
     } finally {
       setDeletingId(null);
     }
   };
 
-  const buttonDisabled = !actorReady || isCreating;
-
   return (
-    <div className="flex flex-col h-full panel-base">
-      <div className="panel-header justify-between">
-        <span className="panel-label">Sessions</span>
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/40">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Sessions
+        </span>
         <Button
           size="sm"
-          onClick={onNewSession}
-          disabled={buttonDisabled}
-          className="h-6 text-[10px] font-mono bg-teal/10 hover:bg-teal/20 border border-teal/30 text-teal px-2 disabled:opacity-40"
           variant="ghost"
+          className="h-7 w-7 p-0"
+          onClick={onNewSession}
+          disabled={isCreating}
+          title="New Session"
         >
-          {actorFetching || isCreating ? (
-            <Loader2 size={10} className="mr-1 animate-spin" />
+          {isCreating ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            <Plus size={10} className="mr-1" />
+            <Plus className="h-3.5 w-3.5" />
           )}
-          {isCreating ? 'Creating...' : 'New'}
         </Button>
       </div>
 
+      {/* Session List */}
       <ScrollArea className="flex-1">
-        {isLoading ? (
-          <div className="p-3 space-y-2">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-12 rounded bg-muted/20 animate-pulse" />
-            ))}
-          </div>
-        ) : !sessions || sessions.length === 0 ? (
-          <div className="p-4 text-center text-muted-foreground/40">
-            <BarChart2 size={20} className="mx-auto mb-2 opacity-30" />
-            <p className="text-[10px] font-mono">No sessions yet</p>
-            <p className="text-[9px] font-mono mt-1 opacity-60">Start a new session to begin</p>
-          </div>
-        ) : (
-          <div className="p-2 space-y-1">
-            {sessions.map(session => (
-              <button
+        <div className="p-2 space-y-1">
+          {sessions.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-30" />
+              <p className="text-xs">No sessions yet</p>
+              <p className="text-xs opacity-60 mt-1">Click + to start</p>
+            </div>
+          )}
+          {sessions.map((session) => {
+            const isActive = session.sessionId === activeSessionId;
+            const isDeleting = deletingId === session.sessionId;
+            return (
+              <div
                 key={session.sessionId}
-                onClick={() => onSelectSession(session.sessionId)}
-                className={cn(
-                  'w-full text-left p-2 rounded border transition-all group relative',
-                  currentSessionId === session.sessionId
-                    ? 'bg-teal/10 border-teal/30'
-                    : 'bg-navy/30 border-border/40 hover:border-teal/20 hover:bg-navy/50'
-                )}
+                onClick={() => onSessionSelect(session.sessionId)}
+                className={`group relative rounded-lg p-2.5 cursor-pointer transition-all duration-150 ${
+                  isActive
+                    ? 'bg-primary/15 border border-primary/30'
+                    : 'hover:bg-muted/50 border border-transparent'
+                }`}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-mono text-foreground/80 truncate flex-1 pr-2">
-                    Session {session.sessionId.slice(-8).toUpperCase()}
-                  </span>
-                  <button
-                    onClick={e => handleDelete(e, session.sessionId)}
-                    disabled={deletingId === session.sessionId}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-red-950/50 text-muted-foreground/40 hover:text-red-400"
-                    title="Delete session"
-                  >
-                    {deletingId === session.sessionId ? (
-                      <Loader2 size={10} className="animate-spin" />
-                    ) : (
-                      <Trash2 size={10} />
+                <div className="flex items-start justify-between gap-1">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <MessageSquare
+                        className={`h-3 w-3 flex-shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
+                      />
+                      <span
+                        className={`text-xs font-medium truncate ${isActive ? 'text-primary' : 'text-foreground'}`}
+                      >
+                        Session {session.sessionId.slice(-6)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate leading-relaxed">
+                      {getSessionPreview(session)}
+                    </p>
+                    <div className="flex items-center gap-1 mt-1.5">
+                      <Clock className="h-2.5 w-2.5 text-muted-foreground/60" />
+                      <span className="text-[10px] text-muted-foreground/60">
+                        {formatTimestamp(session.timestamp)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    {session.patterns.length > 0 && (
+                      <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
+                        {session.patterns.length}p
+                      </Badge>
                     )}
-                  </button>
+                    {session.ethicalViolations.length > 0 && (
+                      <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4">
+                        {session.ethicalViolations.length}v
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-mono text-muted-foreground/50">
-                    {formatTimeAgo(session.timestamp)}
-                  </span>
-                  <span className={cn('text-[9px] font-mono', getSessionHealthColor(session))}>
-                    {getSessionHealthLabel(session)}
-                  </span>
-                  <span className="text-[9px] font-mono text-muted-foreground/40 ml-auto">
-                    {session.patterns.length} patterns
-                  </span>
-                </div>
-                {currentSessionId === session.sessionId && (
-                  <ChevronRight size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-teal/50" />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+
+                {/* Delete button */}
+                <button
+                  onClick={(e) => handleDelete(e, session.sessionId)}
+                  disabled={isDeleting}
+                  className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive"
+                  title="Delete session"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3 w-3" />
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </ScrollArea>
     </div>
   );

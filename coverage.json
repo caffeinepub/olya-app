@@ -1,132 +1,38 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-24T20:45:48.317Z",
+  "generatedAt": "2026-02-26T10:56:10.045Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 6,
-    "implemented": 5,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement a backend conversation pattern learning system that accumulates transcript entries across sessions and derives communication pattern metrics (e.g., dominant speaker roles, recurring intents, emotion trajectories, topic frequency). Store these aggregated pattern records per user in the backend actor so they persist across sessions and can be used for predictions.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Implement a client-side prediction engine (extending the existing simulator utilities) that uses the accumulated communication pattern profile to generate forward-looking predictions: likely next emotion, probable intent, expected negotiation direction, and suggested de-escalation window. Display these predictions in a dedicated 'Pattern Predictions' panel on the Dashboard.",
+        "summary": "Investigate and fix the bug preventing new conversation sessions from being created. Identify whether the failure originates in the backend `createSession` call, the React Query mutation in `useQueries.ts`, or the session creation handler in `Dashboard.tsx`, and restore full session creation functionality.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/utils/patternPredictionEngine.ts",
-          "frontend/src/components/PatternPredictionsPanel.tsx",
+          "frontend/src/hooks/useQueries.ts",
           "frontend/src/pages/Dashboard.tsx",
+          "frontend/src/components/SessionManager.tsx"
+        ],
+        "matchedFiles": [
           "frontend/src/hooks/useQueries.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/patternPredictionEngine.ts",
-          "frontend/src/components/PatternPredictionsPanel.tsx",
-          "frontend/src/pages/Dashboard.tsx",
-          "frontend/src/hooks/useQueries.ts"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Extend the existing bias detection in ethicsSimulator.ts to cover a broader range of bias categories (gender, racial, socioeconomic, cognitive/confirmation bias) using expanded regex and keyword pattern sets. Store a per-session bias frequency log in the backend so operators can review historical bias incidents.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/ethicsSimulator.ts",
-          "frontend/src/components/EthicsBadge.tsx",
-          "frontend/src/components/SessionSummaryBar.tsx",
-          "frontend/src/pages/Dashboard.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/ethicsSimulator.ts",
-          "frontend/src/components/EthicsBadge.tsx",
-          "frontend/src/components/SessionSummaryBar.tsx",
-          "frontend/src/pages/Dashboard.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Implement a hallucination guardrail layer as a new frontend utility (hallucinationGuard.ts) that evaluates any AI-generated text (strategy recommendations, predictions) for signals of fabricated specificity: unsupported factual claims, invented statistics, unverifiable named references, and contradictions with prior transcript context. Flag and visually annotate any output that triggers the guardrail before it is shown to the operator.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/hallucinationGuard.ts",
-          "frontend/src/components/StrategyEnginePanel.tsx",
-          "frontend/src/components/PatternPredictionsPanel.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/hallucinationGuard.ts",
-          "frontend/src/components/StrategyEnginePanel.tsx",
-          "frontend/src/components/PatternPredictionsPanel.tsx"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Implement an ethical constraints enforcement layer that runs on every transcript entry and every AI-generated output (strategies, predictions). Define a set of hard ethical rules (no personal attacks, no manipulative framing, no dehumanizing language, no coercive pressure tactics) and block or redact content that violates them. Log ethical violations per session in the backend.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/ethicalConstraints.ts",
-          "frontend/src/components/TranscriptPanel.tsx",
-          "frontend/src/components/StrategyEnginePanel.tsx",
-          "frontend/src/components/PatternPredictionsPanel.tsx",
-          "frontend/src/components/EthicsBadge.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/ethicalConstraints.ts",
-          "frontend/src/components/TranscriptPanel.tsx",
-          "frontend/src/components/StrategyEnginePanel.tsx",
-          "frontend/src/components/PatternPredictionsPanel.tsx",
-          "frontend/src/components/EthicsBadge.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Add a 'Safety & Quality Dashboard' section in the UI (accessible from the session view) that consolidates: bias incident count and categories, hallucination flag rate for the current session, ethical violation count, and an overall Trustworthiness Score derived from these three metrics. Display trends over the session lifetime.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/trustworthinessScoreCalculator.ts",
-          "frontend/src/components/SafetyQualityPanel.tsx",
-          "frontend/src/pages/Dashboard.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/trustworthinessScoreCalculator.ts",
-          "frontend/src/components/SafetyQualityPanel.tsx",
-          "frontend/src/pages/Dashboard.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/EthicsBadge.tsx",
-    "frontend/src/components/PatternPredictionsPanel.tsx",
-    "frontend/src/components/SafetyQualityPanel.tsx",
-    "frontend/src/components/SessionManager.tsx",
-    "frontend/src/components/SessionSummaryBar.tsx",
-    "frontend/src/components/StrategyEnginePanel.tsx",
-    "frontend/src/components/TranscriptPanel.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
+    "frontend/src/App.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/Dashboard.tsx",
-    "frontend/src/utils/ethicalConstraints.ts",
-    "frontend/src/utils/ethicsSimulator.ts",
-    "frontend/src/utils/hallucinationGuard.ts",
-    "frontend/src/utils/patternPredictionEngine.ts",
-    "frontend/src/utils/trustworthinessScoreCalculator.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,163 +1,33 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend Implementation for Conversation Pattern Learning with Bias Detection, Hallucination Guardrails, and Ethical Constraints",
+  "title": "Fix: New sessions cannot be created",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Implement client-side prediction engine using accumulated communication pattern profile to generate forward-looking predictions and display them in a Pattern Predictions panel on the Dashboard",
+      "id": "REQ-1",
+      "summary": "Investigate and fix the bug preventing new conversation sessions from being created in the frontend session creation flow",
       "acceptanceCriteria": [
-        "A PatternPredictionsPanel component renders predicted next emotion, next intent, conversation direction, and suggested action window.",
-        "Predictions update in real-time as new transcript entries are added.",
-        "The panel is integrated into Dashboard.tsx alongside the existing analysis panels.",
-        "If insufficient data exists (fewer than 3 entries), the panel displays a 'Building pattern baseline…' placeholder."
+        "Clicking the 'New Session' (or equivalent) button in the SessionManager successfully creates a new session.",
+        "The newly created session appears immediately in the session list without requiring a page refresh.",
+        "The newly created session becomes the active session.",
+        "No errors are thrown in the browser console or backend logs when creating a session.",
+        "Session creation works for both authenticated and guest users if both flows are supported."
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/utils/patternPredictionEngine.ts",
-          "operation": "create",
-          "description": "Create a client-side prediction engine utility that extends the existing simulator utilities. Export a predictNextPattern function that accepts a communication pattern profile (emotion trends, intent distribution, topic clusters) and current transcript entries, then returns predictions for: likely next emotion with confidence score, probable next intent with confidence score, expected negotiation direction (escalating/de-escalating/stable), and suggested de-escalation window (time-based recommendation). Use heuristic scoring based on frequency analysis, trend detection (last 3-5 entries), and transition probability estimation. Export TypeScript types: PatternProfile, PatternPrediction, NegotiationDirection, and DeescalationWindow."
-        },
-        {
-          "path": "frontend/src/components/PatternPredictionsPanel.tsx",
-          "operation": "create",
-          "description": "Create a PatternPredictionsPanel component using PanelContainer for visual consistency. Accept transcript entries and communication pattern profile as props. Call patternPredictionEngine.predictNextPattern to compute predictions. If fewer than 3 transcript entries exist, render a placeholder message 'Building pattern baseline…' with a spinner icon. Otherwise, display four prediction cards: (1) Next Emotion with confidence bar and label, (2) Next Intent with confidence bar and label, (3) Negotiation Direction as a trend indicator with color coding (red=escalating, green=de-escalating, amber=stable), (4) De-escalation Window showing suggested timing and reasoning. Use Tailwind utility classes for layout (grid or flex) and match the styling of existing panels (EmotionIntentPanel, BeliefStatePanel). Include an icon (e.g., TrendingUp from lucide-react) in the panel header."
-        },
-        {
-          "path": "frontend/src/pages/Dashboard.tsx",
-          "operation": "modify",
-          "description": "Import PatternPredictionsPanel and integrate it into the Dashboard layout. Fetch the communication pattern profile for the current user using a new React Query hook (useGetPatternProfile) that calls backend actor.getAggregateData(). Pass the current transcript entries and the fetched pattern profile as props to PatternPredictionsPanel. Position the panel in the main grid alongside EmotionIntentPanel, BeliefStatePanel, and StrategyEnginePanel. Ensure the panel updates reactively when transcript entries are added via the existing state management in useDashboardState."
-        },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a new useGetPatternProfile custom hook using React Query. Query key: ['patternProfile']. Call actor.getAggregateData() to retrieve the communication pattern profile containing patterns, ethicalViolations, and biases arrays. Enable the query only when actor is available and user is authenticated. Return the query result with isLoading, isError, and data fields. Invalidate this query whenever a session is updated (link to existing invalidation logic in useUpdateSession)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Extend bias detection in ethicsSimulator.ts to cover gender, racial, socioeconomic, and cognitive/confirmation bias categories, and update EthicsBadge to display specific bias category labels and session summary to show bias incident count",
-      "acceptanceCriteria": [
-        "ethicsSimulator.ts detects at least four bias categories: gender, racial, socioeconomic, and confirmation bias.",
-        "Each detected bias instance is tagged with category, severity, and the offending text fragment.",
-        "Backend actor stores a bias log per session that is queryable by the frontend.",
-        "EthicsBadge component displays the specific bias category label when bias is detected.",
-        "A bias incident count is shown in SessionSummaryBar alongside the existing health score."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/ethicsSimulator.ts",
-          "operation": "modify",
-          "description": "Extend the existing analyzeEthics function to detect four bias categories: gender (keywords/patterns like 'men are', 'women should', gendered stereotypes), racial (keywords/patterns like ethnic slurs, racial stereotypes, derogatory terms), socioeconomic (keywords/patterns like 'poor people', 'welfare queens', class-based stereotypes), and confirmation bias (patterns like 'only my view', 'everyone knows', 'obviously', absolute certainty language). Add a biasCategories array to EthicsResult type containing objects with { category: string, severity: number, fragment: string }. Update the existing regex and keyword pattern sets to cover these categories. Preserve backward compatibility by keeping the existing status, severity, explanation, and flags fields. If any bias is detected, set status to 'Bias' and include category-specific details in the explanation and biasCategories array."
-        },
-        {
-          "path": "frontend/src/components/EthicsBadge.tsx",
-          "operation": "modify",
-          "description": "Extend EthicsBadge to accept an optional biasCategories prop (array of bias category objects from EthicsResult). When status is 'Bias', display the specific bias category labels in the badge text or in the expandable details section. If multiple categories are detected, show a comma-separated list or a count indicator (e.g., '2 bias types detected'). Update the badge color or icon to differentiate bias types if needed. Maintain backward compatibility with existing props (status, explanation, flags)."
-        },
-        {
-          "path": "frontend/src/components/SessionSummaryBar.tsx",
-          "operation": "modify",
-          "description": "Add a bias incident count metric to SessionSummaryBar. Accept a new biasCount prop (number) and display it alongside the existing health score, exchange count, dominant emotion, and top strategy. Render the bias count with an appropriate icon (e.g., AlertTriangle from lucide-react) and label (e.g., 'Bias Incidents'). Color-code the count: green if 0, amber if 1-3, red if >3. Position it in the summary bar grid, ensuring visual consistency with the existing metrics."
+          "description": "Review and fix the useCreateSession mutation to ensure it correctly invokes the backend createSession method with the required parameters (sessionId, rawTranscript, transcriptEntries array). Verify that the mutation properly handles the returned ExtendedConversationSession and triggers query invalidation for the sessions list. Ensure error handling is robust and surfaces any backend authorization or validation errors to the caller."
         },
         {
           "path": "frontend/src/pages/Dashboard.tsx",
           "operation": "modify",
-          "description": "In Dashboard.tsx, compute the bias incident count from the current session's biasLog array (fetched from backend via useGetSession query). Sum the count fields from all BiasCategory entries in the biasLog. Pass this computed biasCount as a prop to SessionSummaryBar. Ensure the bias count updates when the session data is refreshed or when new transcript entries trigger backend updates."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Implement a hallucination guardrail layer that evaluates AI-generated text for fabricated specificity signals and visually annotates flagged outputs before rendering",
-      "acceptanceCriteria": [
-        "hallucinationGuard.ts exports a checkForHallucination(text, context) function returning a HallucinationResult with a boolean flagged field, a confidence score, and an array of suspect phrases.",
-        "Strategy recommendations from StrategyEnginePanel pass through the hallucination guard before rendering.",
-        "Pattern predictions from REQ-2 pass through the hallucination guard before rendering.",
-        "Flagged outputs are annotated with a visible warning indicator (e.g., yellow badge labeled 'Verify') and the suspect phrases are highlighted or listed.",
-        "Non-flagged outputs render normally with no additional UI noise."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/hallucinationGuard.ts",
-          "operation": "create",
-          "description": "Create a hallucination guardrail utility. Export a checkForHallucination function that accepts (text: string, context: string[]) and returns a HallucinationResult with fields: { flagged: boolean, confidence: number (0-1), suspectPhrases: Array<{ phrase: string, reason: string }> }. Detect signals of fabricated specificity: unsupported factual claims (e.g., 'studies show', 'research proves' without citation), invented statistics (e.g., specific percentages or numbers without source), unverifiable named references (e.g., 'Dr. Smith said', 'according to experts'), and contradictions with prior context. Use regex patterns and keyword matching to identify suspect phrases. Score confidence based on the number and severity of detected signals. Flag as true if confidence exceeds a threshold (e.g., 0.6). Export the HallucinationResult TypeScript type."
+          "description": "Review and fix the session creation handler (typically triggered by a 'New Session' button in SessionManager) to ensure it generates a valid unique sessionId, constructs the initial rawTranscript and transcriptEntries array correctly, and calls the useCreateSession mutation. Verify that upon successful session creation, the new session is set as the active session and the UI updates immediately. Add console logging for debugging if session creation fails. Ensure the handler respects the authorization component's requirement that only authenticated users can create sessions."
         },
         {
-          "path": "frontend/src/components/StrategyEnginePanel.tsx",
+          "path": "frontend/src/components/SessionManager.tsx",
           "operation": "modify",
-          "description": "Import hallucinationGuard.checkForHallucination. For each strategy recommendation before rendering, pass the strategy text and the transcript entry texts as context to checkForHallucination. If flagged is true, wrap the strategy text in a visual warning container: display a yellow 'Verify' badge (using shadcn/ui Badge component with variant='warning') next to the strategy, and render the suspect phrases below the strategy text as a collapsible list with their reasons. Non-flagged strategies render normally without additional UI elements. Ensure the hallucination check does not block rendering, but only annotates the output."
-        },
-        {
-          "path": "frontend/src/components/PatternPredictionsPanel.tsx",
-          "operation": "modify",
-          "description": "Import hallucinationGuard.checkForHallucination. For each prediction text (next emotion, next intent, negotiation direction reasoning, de-escalation window reasoning), pass it and the transcript entry texts as context to checkForHallucination. If flagged is true, display a yellow 'Verify' badge next to the prediction label and render the suspect phrases in a collapsible tooltip or popover (using shadcn/ui Popover or Tooltip component) on hover/click. Non-flagged predictions render normally. Ensure the hallucination check integrates seamlessly with the existing prediction card layout."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Implement an ethical constraints enforcement layer that runs on every transcript entry and AI-generated output, blocking or redacting content that violates hard ethical rules, and updating the UI to display violations",
-      "acceptanceCriteria": [
-        "An ethicalConstraints.ts utility exports an enforceEthics(text) function that returns an EnforcementResult with isViolation, violationType, and sanitizedText fields.",
-        "Transcript entries that trigger an ethical violation are visually flagged in TranscriptPanel with a red 'Ethics Violation' badge and the sanitized text is displayed.",
-        "AI-generated strategies or predictions that violate ethical constraints are blocked from rendering and replaced with a 'Content withheld – ethical constraint triggered' notice.",
-        "Backend actor stores an ethical violation log per session queryable by the authenticated user.",
-        "The EthicsBadge component is updated to cover the new violation types alongside existing bias/toxic statuses."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/ethicalConstraints.ts",
-          "operation": "create",
-          "description": "Create an ethical constraints enforcement utility. Export an enforceEthics function that accepts (text: string) and returns an EnforcementResult with fields: { isViolation: boolean, violationType: string | null (e.g., 'personal-attack', 'manipulative-framing', 'dehumanizing-language', 'coercive-pressure'), sanitizedText: string }. Define hard ethical rules using regex and keyword patterns: (1) personal attacks (insults, name-calling, threats), (2) manipulative framing (gaslighting phrases, emotional manipulation), (3) dehumanizing language (objectifying terms, reduction to labels), (4) coercive pressure tactics (ultimatums, threats, aggressive demands). If a violation is detected, redact the offending phrases by replacing them with '[REDACTED]' and set isViolation to true. Return the sanitized text and violation type. Export the EnforcementResult TypeScript type."
-        },
-        {
-          "path": "frontend/src/components/TranscriptPanel.tsx",
-          "operation": "modify",
-          "description": "Import ethicalConstraints.enforceEthics. For each transcript entry before rendering, call enforceEthics(entry.text). If isViolation is true, display a red 'Ethics Violation' badge (using shadcn/ui Badge component with variant='destructive') next to the speaker badge, and render the sanitizedText instead of the original text. Include a tooltip or popover showing the violationType. Ensure the violation badge is visually distinct from existing ethics/toxicity badges. Non-violating entries render normally."
-        },
-        {
-          "path": "frontend/src/components/StrategyEnginePanel.tsx",
-          "operation": "modify",
-          "description": "Import ethicalConstraints.enforceEthics. For each strategy recommendation before rendering, call enforceEthics(strategy.text). If isViolation is true, do not render the strategy. Instead, display a notice: 'Content withheld – ethical constraint triggered: [violationType]' in a muted card with a warning icon. Non-violating strategies render normally (subject to the existing hallucination guard annotation from REQ-4)."
-        },
-        {
-          "path": "frontend/src/components/PatternPredictionsPanel.tsx",
-          "operation": "modify",
-          "description": "Import ethicalConstraints.enforceEthics. For each prediction text (next emotion, next intent, negotiation direction reasoning, de-escalation window reasoning), call enforceEthics(text). If isViolation is true, replace the prediction text with a notice: 'Content withheld – ethical constraint triggered: [violationType]' in a muted style with a warning icon. Non-violating predictions render normally (subject to the existing hallucination guard annotation from REQ-4)."
-        },
-        {
-          "path": "frontend/src/components/EthicsBadge.tsx",
-          "operation": "modify",
-          "description": "Extend EthicsBadge to accept an optional violationType prop (string from EnforcementResult). Add a new badge variant or status value 'Violation' to represent ethical constraint violations. When violationType is present, display the specific violation type label (e.g., 'Personal Attack', 'Manipulative Framing') in the badge or expandable details. Update badge color to red (destructive variant) for violations. Ensure the badge can handle combinations of bias, toxicity, and ethical violations (e.g., show multiple badges or a combined label)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "summary": "Add a Safety & Quality Dashboard section that consolidates bias incident count, hallucination flag rate, ethical violation count, and Trustworthiness Score with real-time updates and color-coded indicators",
-      "acceptanceCriteria": [
-        "A SafetyQualityPanel component is added to Dashboard.tsx and renders bias count, hallucination flag rate (%), ethical violation count, and Trustworthiness Score (0–100).",
-        "Trustworthiness Score decreases as bias, hallucination, and ethical violations accumulate, and is color-coded (green ≥80, amber 50–79, red <50).",
-        "All four metrics update in real-time as new entries are added during a session.",
-        "The panel integrates with PanelContainer for consistent visual styling."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/trustworthinessScoreCalculator.ts",
-          "operation": "create",
-          "description": "Create a trustworthiness score calculation utility. Export a calculateTrustworthinessScore function that accepts (biasCount: number, hallucinationFlagRate: number, ethicalViolationCount: number, totalEntries: number) and returns a score (0-100). Use a weighted formula: start with 100 and subtract penalties for each incident type (e.g., -5 per bias, -10 per ethical violation, -3 per hallucination flag). Normalize the score to 0-100 range. Export the function and a TypeScript type TrustworthinessMetrics with fields { biasCount, hallucinationFlagRate, ethicalViolationCount, trustworthinessScore }."
-        },
-        {
-          "path": "frontend/src/components/SafetyQualityPanel.tsx",
-          "operation": "create",
-          "description": "Create a SafetyQualityPanel component using PanelContainer for visual consistency. Accept props: biasCount (number), hallucinationFlagRate (number, percentage 0-100), ethicalViolationCount (number), trustworthinessScore (number, 0-100). Render four metric cards in a grid layout: (1) Bias Incidents with count and icon (AlertTriangle), (2) Hallucination Flag Rate with percentage and icon (AlertCircle), (3) Ethical Violations with count and icon (ShieldAlert), (4) Trustworthiness Score with a circular progress indicator or gauge and color coding (green ≥80, amber 50-79, red <50). Use Tailwind utility classes for layout and shadcn/ui components for the gauge/progress indicator (e.g., Progress component). Include a Shield icon in the panel header."
-        },
-        {
-          "path": "frontend/src/pages/Dashboard.tsx",
-          "operation": "modify",
-          "description": "Import SafetyQualityPanel and trustworthinessScoreCalculator.calculateTrustworthinessScore. Compute the four safety metrics from the current session and transcript entries: (1) biasCount from session.biasLog (sum of count fields), (2) hallucinationFlagRate by iterating through transcript entries and strategies/predictions, calling hallucinationGuard.checkForHallucination for each, and calculating the percentage of flagged items, (3) ethicalViolationCount from session.ethicalViolations (sum of count fields), (4) trustworthinessScore by calling calculateTrustworthinessScore with the computed metrics. Pass these metrics as props to SafetyQualityPanel. Position the panel in the Dashboard layout, ideally in a dedicated section below or beside the existing panels. Ensure the panel updates reactively when transcript entries are added or session data is refreshed."
+          "description": "Review the 'New Session' button and its click handler to ensure it correctly invokes the parent Dashboard's session creation handler. Verify that the button is enabled only when appropriate (user is authenticated per the authorization component requirements) and shows loading state during session creation. Ensure no race conditions exist that could prevent the new session from appearing in the list or becoming active."
         }
       ]
     }

@@ -1,14 +1,63 @@
-import React from 'react';
-import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { useGetCallerUserProfile } from './hooks/useQueries';
-import AppHeader from './components/AppHeader';
-import LoginButton from './components/LoginButton';
-import ProfileSetupModal from './components/ProfileSetupModal';
-import Dashboard from './pages/Dashboard';
+import React, { useEffect, useRef } from 'react';
+import {
+  RouterProvider,
+  createRouter,
+  createRoute,
+  createRootRoute,
+  Outlet,
+} from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
+import { useInternetIdentity } from './hooks/useInternetIdentity';
+import { useActor } from './hooks/useActor';
+import {
+  useGetCallerUserProfile,
+  useSaveCallerUserProfile,
+  useEnsureUserRole,
+} from './hooks/useQueries';
+import { useAppLanguagePreference } from './hooks/useAppLanguagePreference';
+import ProfileSetupModal from './components/ProfileSetupModal';
+import { AppLanguageSelectorFull } from './components/AppLanguageSelector';
+import Dashboard from './pages/Dashboard';
+import UserManual from './pages/UserManual';
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    },
+  },
+});
+
+// Root layout component
+function RootLayout() {
+  return <Outlet />;
+}
+
+const rootRoute = createRootRoute({ component: RootLayout });
+
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  component: Dashboard,
+});
+
+const userManualRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/user-manual',
+  component: UserManual,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, userManualRoute]);
+const router = createRouter({ routeTree });
+
+// Main app logic component
 function AppContent() {
   const { identity, isInitializing } = useInternetIdentity();
+  const { isFetching: actorFetching } = useActor();
+  const { language, setAppLanguage } = useAppLanguagePreference();
   const isAuthenticated = !!identity;
 
   const {
@@ -17,95 +66,87 @@ function AppContent() {
     isFetched: profileFetched,
   } = useGetCallerUserProfile();
 
+  const saveProfile = useSaveCallerUserProfile();
+  const ensureUserRole = useEnsureUserRole();
+
+  // Track whether we've already attempted role assignment for this login session
+  const roleAssignedRef = useRef(false);
+
+  // Assign #user role as soon as the actor is ready and the user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && !actorFetching && !roleAssignedRef.current) {
+      roleAssignedRef.current = true;
+      ensureUserRole.mutate();
+    }
+    if (!isAuthenticated) {
+      roleAssignedRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, actorFetching]);
+
   const showProfileSetup =
     isAuthenticated && !profileLoading && profileFetched && userProfile === null;
 
-  return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <AppHeader />
+  const showLanguageSelection =
+    isAuthenticated &&
+    !profileLoading &&
+    profileFetched &&
+    userProfile !== null &&
+    !language;
 
-      {showProfileSetup && <ProfileSetupModal />}
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <img
+            src="/assets/generated/olya-logo.dim_256x256.png"
+            alt="Olya"
+            className="w-16 h-16 rounded-xl animate-pulse"
+          />
+          <p className="text-muted-foreground text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {isInitializing ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="status-dot w-3 h-3" />
-              <p className="text-xs font-mono text-muted-foreground animate-pulse">
-                Initializing Olya Intelligence System...
-              </p>
-            </div>
-          </div>
-        ) : !isAuthenticated ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-6 max-w-md text-center px-6">
-              <img
-                src="/assets/generated/olya-logo.dim_256x256.png"
-                alt="Olya App"
-                className="w-24 h-24 object-contain"
-              />
-              <div>
-                <h1 className="text-2xl font-bold text-foreground mb-2 font-mono tracking-tight">
-                  OLYA <span className="text-teal">INTELLIGENCE</span>
-                </h1>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  AI-Driven Strategic Dialogue Intelligence System. Real-time NLP
-                  analysis, emotion detection, and strategy recommendations for
-                  high-stakes negotiations.
-                </p>
-              </div>
-              <div className="grid grid-cols-3 gap-3 w-full text-center">
-                {[
-                  { label: 'ASR', sub: 'Web Speech API' },
-                  { label: 'NLP', sub: 'BERT/RoBERTa' },
-                  { label: 'Strategy', sub: 'LLM+RL' },
-                ].map((item) => (
-                  <div key={item.label} className="panel-base p-3">
-                    <p className="text-xs font-mono font-bold text-teal">{item.label}</p>
-                    <p className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">
-                      {item.sub}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <LoginButton />
-              <p className="text-[10px] font-mono text-muted-foreground/40">
-                Secure authentication required to access intelligence systems
-              </p>
-            </div>
-          </div>
-        ) : (
-          <Dashboard />
-        )}
-      </main>
+  if (!isAuthenticated) {
+    return <RouterProvider router={router} />;
+  }
 
-      <footer className="border-t border-border/30 py-2 px-4 flex items-center justify-between bg-navy/50">
-        <p className="text-[9px] font-mono text-muted-foreground/40">
-          © {new Date().getFullYear()} Olya Intelligence System · ASR: Web Speech
-          API · NLP: BERT-Sim · Ethics: Bias+Toxicity Detection
-        </p>
-        <p className="text-[9px] font-mono text-muted-foreground/40">
-          Built with{' '}
-          <span className="text-red-400/60">♥</span>{' '}
-          using{' '}
-          <a
-            href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(
-              window.location.hostname || 'olya-app'
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-teal/60 hover:text-teal transition-colors"
-          >
-            caffeine.ai
-          </a>
-        </p>
-      </footer>
+  if (showProfileSetup) {
+    return (
+      <>
+        <RouterProvider router={router} />
+        <ProfileSetupModal
+          onSave={async (name: string) => {
+            await saveProfile.mutateAsync({ name });
+          }}
+          isSaving={saveProfile.isPending}
+        />
+      </>
+    );
+  }
 
-      <Toaster richColors position="top-right" />
-    </div>
-  );
+  if (showLanguageSelection) {
+    return (
+      <AppLanguageSelectorFull
+        onContinue={() => {
+          if (!language) setAppLanguage('en');
+        }}
+      />
+    );
+  }
+
+  return <RouterProvider router={router} />;
 }
 
 export default function App() {
-  return <AppContent />;
+  return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+        <Toaster />
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
 }

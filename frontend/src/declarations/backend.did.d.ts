@@ -23,12 +23,17 @@ export interface ExtendedConversationSession {
   'biasLog' : Array<BiasCategory>,
   'patterns' : Array<ConversationPattern>,
   'owner' : Principal,
+  'transcriptEntries' : Array<TranscriptEntry>,
   'timestamp' : Time,
   'rawTranscript' : string,
   'sessionId' : string,
   'ethicalViolations' : Array<EthicalViolation>,
 }
 export type Time = bigint;
+export interface TranscriptEntry {
+  'text' : string,
+  'detectedLanguage' : string,
+}
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -39,7 +44,10 @@ export interface _SERVICE {
   /**
    * / Create session with ethics checks (users only)
    */
-  'createSession' : ActorMethod<[string, string], ExtendedConversationSession>,
+  'createSession' : ActorMethod<
+    [string, string, Array<TranscriptEntry>],
+    ExtendedConversationSession
+  >,
   /**
    * / Delete session (owner only)
    */
@@ -86,7 +94,7 @@ export interface _SERVICE {
    * / Update session transcript and patterns (owner only)
    */
   'updateSession' : ActorMethod<
-    [string, string, Array<ConversationPattern>],
+    [string, string, Array<TranscriptEntry>, Array<ConversationPattern>],
     undefined
   >,
 }

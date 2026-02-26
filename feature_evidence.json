@@ -2,13 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-a-client-side-prediction-engine-extending-the-existing-simulator-utilities-that-uses-the-accumulated-communication-pattern-profile-to-generate-forward-looking-predictions-likely-next-emotion-probable-intent-expected-negotiation-direction-and-suggested-de-escalation-window-display-these-predictions-in-a-dedicated-pattern-predictions-panel-on-the-dashboard",
-      "featureTitle": "Implement a client-side prediction engine (extending the existing simulator utilities) that uses the accumulated communication pattern profile to generate forward-looking predictions: likely next emotion, probable intent, expected negotiation direction, and suggested de-escalation window. Display these predictions in a dedicated 'Pattern Predictions' panel on the Dashboard.",
+      "featureId": "feature-investigate-and-fix-the-bug-preventing-new-conversation-sessions-from-being-created-identify-whether-the-failure-originates-in-the-backend-createsession-call-the-react-query-mutation-in-usequeries-ts-or-the-session-creation-handler-in-dashboard-tsx-and-restore-full-session-creation-functionality",
+      "featureTitle": "Investigate and fix the bug preventing new conversation sessions from being created. Identify whether the failure originates in the backend `createSession` call, the React Query mutation in `useQueries.ts`, or the session creation handler in `Dashboard.tsx`, and restore full session creation functionality.",
       "files": [
-        "frontend/src/components/PatternPredictionsPanel.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/Dashboard.tsx",
-        "frontend/src/utils/patternPredictionEngine.ts"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,94 +16,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-extend-the-existing-bias-detection-in-ethicssimulator-ts-to-cover-a-broader-range-of-bias-categories-gender-racial-socioeconomic-cognitive-confirmation-bias-using-expanded-regex-and-keyword-pattern-sets-store-a-per-session-bias-frequency-log-in-the-backend-so-operators-can-review-historical-bias-incidents",
-      "featureTitle": "Extend the existing bias detection in ethicsSimulator.ts to cover a broader range of bias categories (gender, racial, socioeconomic, cognitive/confirmation bias) using expanded regex and keyword pattern sets. Store a per-session bias frequency log in the backend so operators can review historical bias incidents.",
-      "files": [
-        "frontend/src/components/EthicsBadge.tsx",
-        "frontend/src/components/SessionSummaryBar.tsx",
-        "frontend/src/pages/Dashboard.tsx",
-        "frontend/src/utils/ethicsSimulator.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-a-hallucination-guardrail-layer-as-a-new-frontend-utility-hallucinationguard-ts-that-evaluates-any-ai-generated-text-strategy-recommendations-predictions-for-signals-of-fabricated-specificity-unsupported-factual-claims-invented-statistics-unverifiable-named-references-and-contradictions-with-prior-transcript-context-flag-and-visually-annotate-any-output-that-triggers-the-guardrail-before-it-is-shown-to-the-operator",
-      "featureTitle": "Implement a hallucination guardrail layer as a new frontend utility (hallucinationGuard.ts) that evaluates any AI-generated text (strategy recommendations, predictions) for signals of fabricated specificity: unsupported factual claims, invented statistics, unverifiable named references, and contradictions with prior transcript context. Flag and visually annotate any output that triggers the guardrail before it is shown to the operator.",
-      "files": [
-        "frontend/src/components/PatternPredictionsPanel.tsx",
-        "frontend/src/components/StrategyEnginePanel.tsx",
-        "frontend/src/utils/hallucinationGuard.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-an-ethical-constraints-enforcement-layer-that-runs-on-every-transcript-entry-and-every-ai-generated-output-strategies-predictions-define-a-set-of-hard-ethical-rules-no-personal-attacks-no-manipulative-framing-no-dehumanizing-language-no-coercive-pressure-tactics-and-block-or-redact-content-that-violates-them-log-ethical-violations-per-session-in-the-backend",
-      "featureTitle": "Implement an ethical constraints enforcement layer that runs on every transcript entry and every AI-generated output (strategies, predictions). Define a set of hard ethical rules (no personal attacks, no manipulative framing, no dehumanizing language, no coercive pressure tactics) and block or redact content that violates them. Log ethical violations per session in the backend.",
-      "files": [
-        "frontend/src/components/EthicsBadge.tsx",
-        "frontend/src/components/PatternPredictionsPanel.tsx",
-        "frontend/src/components/StrategyEnginePanel.tsx",
-        "frontend/src/components/TranscriptPanel.tsx",
-        "frontend/src/utils/ethicalConstraints.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-safety-quality-dashboard-section-in-the-ui-accessible-from-the-session-view-that-consolidates-bias-incident-count-and-categories-hallucination-flag-rate-for-the-current-session-ethical-violation-count-and-an-overall-trustworthiness-score-derived-from-these-three-metrics-display-trends-over-the-session-lifetime",
-      "featureTitle": "Add a 'Safety & Quality Dashboard' section in the UI (accessible from the session view) that consolidates: bias incident count and categories, hallucination flag rate for the current session, ethical violation count, and an overall Trustworthiness Score derived from these three metrics. Display trends over the session lifetime.",
-      "files": [
-        "frontend/src/components/SafetyQualityPanel.tsx",
-        "frontend/src/pages/Dashboard.tsx",
-        "frontend/src/utils/trustworthinessScoreCalculator.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-6"
+        "REQ-1"
       ],
       "confidence": "high"
     }

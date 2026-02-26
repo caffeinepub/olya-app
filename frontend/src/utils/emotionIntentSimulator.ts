@@ -1,124 +1,150 @@
-export type EmotionType = 'Neutral' | 'Frustrated' | 'Confident' | 'Curious' | 'Hostile' | 'Anxious' | 'Optimistic';
-export type IntentType = 'Negotiating' | 'Demanding' | 'Conceding' | 'Probing' | 'Agreeing' | 'Deflecting' | 'Asserting';
+import { translateToEnglish } from './translationSimulator';
 
-export interface EmotionResult {
-  emotion: EmotionType;
-  confidence: number;
+export interface EmotionIntentResult {
+  emotions: string[];
+  intents: string[];
+  confidence: Record<string, number>;
 }
 
-export interface IntentResult {
-  intent: IntentType;
-  confidence: number;
-}
-
-export interface EmotionIntentAnalysis {
-  emotion: EmotionResult;
-  intent: IntentResult;
-}
-
-const EMOTION_PATTERNS: Record<EmotionType, string[]> = {
-  Frustrated: ['frustrated', 'annoyed', 'tired', 'sick of', 'fed up', 'unacceptable', 'ridiculous', 'absurd', 'impossible', 'keep saying', 'again and again', 'not listening', 'waste', 'pointless'],
-  Hostile: ['threat', 'warn', 'demand', 'ultimatum', 'or else', 'consequences', 'legal action', 'lawsuit', 'force', 'compel', 'insist', 'refuse', 'never', 'absolutely not', 'out of question'],
-  Confident: ['certain', 'confident', 'sure', 'guarantee', 'proven', 'track record', 'expertise', 'experience', 'clearly', 'obviously', 'without doubt', 'definitely', 'absolutely', 'strong position'],
-  Curious: ['wonder', 'curious', 'interested', 'tell me', 'explain', 'how does', 'what if', 'could you', 'would you', 'can you', 'question', 'understand', 'clarify', 'elaborate', 'more about'],
-  Anxious: ['worried', 'concern', 'afraid', 'fear', 'uncertain', 'unsure', 'risk', 'might', 'could go wrong', 'not sure', 'hesitant', 'nervous', 'doubt', 'maybe', 'perhaps'],
-  Optimistic: ['hope', 'opportunity', 'potential', 'exciting', 'promising', 'forward', 'progress', 'improve', 'better', 'positive', 'benefit', 'advantage', 'great', 'excellent', 'wonderful'],
-  Neutral: [],
+const EMOTION_PATTERNS: Record<string, RegExp[]> = {
+  anger: [
+    /\b(angry|furious|rage|mad|upset|frustrated|irritated|annoyed|hostile|aggressive|outraged|livid)\b/gi,
+    /\b(hate|despise|loathe|resent|detest)\b/gi,
+  ],
+  fear: [
+    /\b(afraid|scared|fearful|terrified|anxious|worried|nervous|panic|dread|apprehensive|threatened)\b/gi,
+    /\b(danger|risk|threat|unsafe|vulnerable|exposed)\b/gi,
+  ],
+  sadness: [
+    /\b(sad|unhappy|depressed|miserable|sorrowful|grief|heartbroken|disappointed|dejected|melancholy)\b/gi,
+    /\b(loss|regret|sorry|unfortunate|tragic|painful)\b/gi,
+  ],
+  joy: [
+    /\b(happy|joyful|excited|pleased|delighted|thrilled|elated|cheerful|content|satisfied|glad)\b/gi,
+    /\b(wonderful|fantastic|amazing|great|excellent|perfect|love|enjoy)\b/gi,
+  ],
+  surprise: [
+    /\b(surprised|shocked|astonished|amazed|stunned|unexpected|sudden|unbelievable|incredible)\b/gi,
+  ],
+  disgust: [
+    /\b(disgusted|revolted|repulsed|nauseated|appalled|horrified|offensive|repugnant)\b/gi,
+  ],
+  neutral: [
+    /\b(okay|fine|alright|normal|standard|regular|typical|usual|common)\b/gi,
+  ],
+  trust: [
+    /\b(trust|believe|confident|reliable|honest|sincere|genuine|authentic|credible)\b/gi,
+  ],
+  anticipation: [
+    /\b(expect|anticipate|hope|look forward|await|plan|prepare|ready|upcoming)\b/gi,
+  ],
 };
 
-const INTENT_PATTERNS: Record<IntentType, string[]> = {
-  Demanding: ['must', 'require', 'need', 'demand', 'expect', 'insist', 'non-negotiable', 'bottom line', 'minimum', 'at least', 'no less than', 'final offer', 'take it or leave'],
-  Conceding: ['agree', 'accept', 'okay', 'fine', 'alright', 'willing', 'can do', 'possible', 'consider', 'flexible', 'compromise', 'meet halfway', 'adjust', 'accommodate', 'understand your point'],
-  Probing: ['what about', 'how about', 'what if', 'suppose', 'hypothetically', 'scenario', 'option', 'alternative', 'possibility', 'explore', 'consider', 'think about', 'what would', 'how would'],
-  Agreeing: ['yes', 'agreed', 'deal', 'perfect', 'exactly', 'precisely', 'that works', 'sounds good', 'great', 'excellent', 'we have a deal', 'let\'s proceed', 'move forward', 'finalize'],
-  Deflecting: ['however', 'but', 'on the other hand', 'actually', 'in fact', 'let me clarify', 'what I meant', 'misunderstanding', 'not exactly', 'that\'s not', 'redirect', 'different angle'],
-  Asserting: ['believe', 'position', 'stance', 'view', 'perspective', 'argument', 'point', 'case', 'evidence', 'data', 'fact', 'research', 'study', 'proven', 'demonstrate'],
-  Negotiating: ['offer', 'propose', 'suggest', 'counter', 'terms', 'conditions', 'deal', 'arrangement', 'structure', 'package', 'bundle', 'include', 'exclude', 'modify'],
+const INTENT_PATTERNS: Record<string, RegExp[]> = {
+  'information-seeking': [
+    /\b(what|how|why|when|where|who|which|explain|tell me|describe|clarify|elaborate)\b/gi,
+    /\b(question|ask|inquire|wonder|curious|understand)\b/gi,
+  ],
+  'negotiating': [
+    /\b(negotiate|deal|offer|counter|propose|compromise|agree|disagree|terms|conditions|price|cost)\b/gi,
+    /\b(accept|reject|consider|review|discuss|settle|resolve)\b/gi,
+  ],
+  'persuading': [
+    /\b(convince|persuade|argue|reason|justify|support|advocate|recommend|suggest|urge)\b/gi,
+    /\b(should|must|need to|have to|important|critical|essential|necessary)\b/gi,
+  ],
+  'threatening': [
+    /\b(threaten|warn|ultimatum|consequence|punish|force|coerce|demand|insist)\b/gi,
+    /\b(or else|otherwise|unless|if not|better|had better)\b/gi,
+  ],
+  'cooperating': [
+    /\b(cooperate|collaborate|work together|partner|join|help|assist|support|together|mutual)\b/gi,
+    /\b(we can|let us|shall we|together|team|alliance|partnership)\b/gi,
+  ],
+  'deflecting': [
+    /\b(avoid|evade|deflect|redirect|change subject|not relevant|beside the point|off topic)\b/gi,
+    /\b(anyway|regardless|moving on|let us focus|back to)\b/gi,
+  ],
+  'acknowledging': [
+    /\b(acknowledge|recognize|admit|accept|understand|appreciate|respect|value|agree)\b/gi,
+    /\b(yes|indeed|certainly|absolutely|of course|right|correct|true)\b/gi,
+  ],
+  'clarifying': [
+    /\b(clarify|specify|elaborate|detail|explain|mean|refer to|talking about|point out)\b/gi,
+    /\b(in other words|that is|namely|specifically|particularly|especially)\b/gi,
+  ],
 };
 
-function scorePatterns(text: string, patterns: Record<string, string[]>): Record<string, number> {
-  const lower = text.toLowerCase();
-  const scores: Record<string, number> = {};
-  for (const [key, keywords] of Object.entries(patterns)) {
-    let score = 0;
-    for (const kw of keywords) {
-      if (lower.includes(kw)) score += 1;
-    }
-    scores[key] = score;
+function countPatternMatches(text: string, patterns: RegExp[]): number {
+  let count = 0;
+  for (const pattern of patterns) {
+    const matches = text.match(pattern);
+    if (matches) count += matches.length;
   }
-  return scores;
+  return count;
 }
 
-export function analyzeEmotionIntent(text: string): EmotionIntentAnalysis {
-  const emotionScores = scorePatterns(text, EMOTION_PATTERNS);
-  const intentScores = scorePatterns(text, INTENT_PATTERNS);
+/**
+ * Analyzes emotion and intent from text.
+ * Accepts an optional detectedLanguage parameter; if non-English, translates to English first.
+ */
+export function analyzeEmotionIntent(text: string, detectedLanguage?: string): EmotionIntentResult {
+  if (!text || !text.trim()) {
+    return { emotions: ['neutral'], intents: ['acknowledging'], confidence: { neutral: 0.5, acknowledging: 0.5 } };
+  }
 
-  // Find dominant emotion
-  let topEmotion: EmotionType = 'Neutral';
-  let topEmotionScore = 0;
-  for (const [emotion, score] of Object.entries(emotionScores)) {
-    if (score > topEmotionScore) {
-      topEmotionScore = score;
-      topEmotion = emotion as EmotionType;
+  // Translate to English for analysis if needed
+  let analysisText = text;
+  if (detectedLanguage && detectedLanguage !== 'en' && detectedLanguage !== 'unknown') {
+    const translated = translateToEnglish(text, detectedLanguage);
+    if (translated && !translated.startsWith('[Translated from')) {
+      analysisText = translated;
     }
   }
 
-  // Find dominant intent
-  let topIntent: IntentType = 'Negotiating';
-  let topIntentScore = 0;
-  for (const [intent, score] of Object.entries(intentScores)) {
-    if (score > topIntentScore) {
-      topIntentScore = score;
-      topIntent = intent as IntentType;
+  const emotionScores: Record<string, number> = {};
+  for (const [emotion, patterns] of Object.entries(EMOTION_PATTERNS)) {
+    const count = countPatternMatches(analysisText, patterns);
+    if (count > 0) {
+      emotionScores[emotion] = count;
     }
   }
 
-  // Calculate confidence based on score magnitude
-  const emotionConf = topEmotionScore === 0 ? 0.65 : Math.min(0.97, 0.55 + topEmotionScore * 0.12);
-  const intentConf = topIntentScore === 0 ? 0.60 : Math.min(0.97, 0.55 + topIntentScore * 0.12);
+  const intentScores: Record<string, number> = {};
+  for (const [intent, patterns] of Object.entries(INTENT_PATTERNS)) {
+    const count = countPatternMatches(analysisText, patterns);
+    if (count > 0) {
+      intentScores[intent] = count;
+    }
+  }
+
+  if (Object.keys(emotionScores).length === 0) {
+    emotionScores['neutral'] = 1;
+  }
+  if (Object.keys(intentScores).length === 0) {
+    intentScores['acknowledging'] = 1;
+  }
+
+  const sortedEmotions = Object.entries(emotionScores)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+    .map(([emotion]) => emotion);
+
+  const sortedIntents = Object.entries(intentScores)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+    .map(([intent]) => intent);
+
+  const allScores = { ...emotionScores, ...intentScores };
+  const maxScore = Math.max(...Object.values(allScores), 1);
+  const confidence: Record<string, number> = {};
+  for (const [key, score] of Object.entries(allScores)) {
+    confidence[key] = Math.min(0.95, 0.3 + (score / maxScore) * 0.65);
+  }
 
   return {
-    emotion: { emotion: topEmotion, confidence: emotionConf },
-    intent: { intent: topIntent, confidence: intentConf },
+    emotions: sortedEmotions,
+    intents: sortedIntents,
+    confidence,
   };
 }
-
-export const EMOTION_COLORS: Record<EmotionType, string> = {
-  Neutral: 'oklch(0.55 0.04 200)',
-  Frustrated: 'oklch(0.65 0.18 35)',
-  Confident: 'oklch(0.72 0.18 185)',
-  Curious: 'oklch(0.65 0.15 280)',
-  Hostile: 'oklch(0.62 0.22 25)',
-  Anxious: 'oklch(0.75 0.18 55)',
-  Optimistic: 'oklch(0.65 0.18 145)',
-};
-
-export const INTENT_COLORS: Record<IntentType, string> = {
-  Negotiating: 'oklch(0.72 0.18 185)',
-  Demanding: 'oklch(0.62 0.22 25)',
-  Conceding: 'oklch(0.65 0.18 145)',
-  Probing: 'oklch(0.65 0.15 280)',
-  Agreeing: 'oklch(0.65 0.18 145)',
-  Deflecting: 'oklch(0.75 0.18 55)',
-  Asserting: 'oklch(0.72 0.18 185)',
-};
-
-export const EMOTION_BG_CLASSES: Record<EmotionType, string> = {
-  Neutral: 'bg-muted/40 text-muted-foreground border-border',
-  Frustrated: 'bg-orange-950/40 text-orange-300 border-orange-800/50',
-  Confident: 'bg-teal-subtle border-teal/30 text-teal',
-  Curious: 'bg-purple-950/40 text-purple-300 border-purple-800/50',
-  Hostile: 'bg-red-950/40 text-red-300 border-red-800/50',
-  Anxious: 'bg-amber-subtle border-amber/30 text-amber',
-  Optimistic: 'bg-green-950/40 text-green-300 border-green-800/50',
-};
-
-export const INTENT_BG_CLASSES: Record<IntentType, string> = {
-  Negotiating: 'bg-teal-subtle border-teal/30 text-teal',
-  Demanding: 'bg-red-950/40 text-red-300 border-red-800/50',
-  Conceding: 'bg-green-950/40 text-green-300 border-green-800/50',
-  Probing: 'bg-purple-950/40 text-purple-300 border-purple-800/50',
-  Agreeing: 'bg-green-950/40 text-green-300 border-green-800/50',
-  Deflecting: 'bg-amber-subtle border-amber/30 text-amber',
-  Asserting: 'bg-teal-subtle border-teal/30 text-teal',
-};

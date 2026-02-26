@@ -1,10 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { Globe, Check, ChevronDown } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import React, { useState } from 'react';
+import { Check, ChevronsUpDown, Globe } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -12,116 +8,102 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { LANGUAGES, getLanguageByCode } from '@/data/languages';
 import { cn } from '@/lib/utils';
+import { LANGUAGES } from '../data/languages';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface LanguageSelectorProps {
-  selectedLanguage: string;
-  onLanguageChange: (code: string) => void;
-  detectedLanguage?: string | null;
-  disabled?: boolean;
+  value: string;
+  onChange: (value: string) => void;
+  latestDetectedLanguage?: string;
 }
 
-export default function LanguageSelector({
-  selectedLanguage,
-  onLanguageChange,
-  detectedLanguage,
-  disabled = false,
-}: LanguageSelectorProps) {
+const AUTO_OPTION = { code: 'auto', name: 'Auto-detect', nativeName: 'Auto' };
+
+export default function LanguageSelector({ value, onChange, latestDetectedLanguage }: LanguageSelectorProps) {
   const [open, setOpen] = useState(false);
+  const { t } = useTranslation();
 
-  const selectedLabel = useMemo(() => {
-    if (selectedLanguage === 'auto') return 'Auto-detect';
-    const lang = getLanguageByCode(selectedLanguage);
-    return lang ? lang.name : selectedLanguage;
-  }, [selectedLanguage]);
+  const selectedLanguage =
+    value === 'auto'
+      ? AUTO_OPTION
+      : LANGUAGES.find((l) => l.code === value) || AUTO_OPTION;
 
-  const handleSelect = (code: string) => {
-    onLanguageChange(code);
-    setOpen(false);
-  };
+  const displayLabel =
+    value === 'auto' && latestDetectedLanguage && latestDetectedLanguage !== 'unknown'
+      ? `Auto (${latestDetectedLanguage.toUpperCase()})`
+      : selectedLanguage.name;
 
   return (
-    <div className="flex items-center gap-2">
-      <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={disabled}
-            className={cn(
-              'h-8 text-xs bg-background/50 border-border/50 gap-1.5 max-w-[180px] justify-between',
-              selectedLanguage === 'auto' && 'text-primary border-primary/40'
-            )}
-          >
-            <span className="truncate">{selectedLabel}</span>
-            <ChevronDown className="w-3 h-3 shrink-0 opacity-60" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-72 p-0" align="start">
-          <Command>
-            <CommandInput placeholder="Search language..." className="h-9 text-xs" />
-            <CommandList className="max-h-64">
-              <CommandEmpty>No language found.</CommandEmpty>
-              <CommandGroup heading="Default">
-                <CommandItem
-                  value="auto"
-                  onSelect={() => handleSelect('auto')}
-                  className="text-xs gap-2"
-                >
-                  <Globe className="w-3.5 h-3.5 text-primary" />
-                  <span className="font-medium text-primary">Auto-detect</span>
-                  <span className="text-muted-foreground ml-auto text-[10px]">
-                    Browser default
-                  </span>
-                  {selectedLanguage === 'auto' && (
-                    <Check className="w-3.5 h-3.5 text-primary ml-1" />
-                  )}
-                </CommandItem>
-              </CommandGroup>
-              <CommandSeparator />
-              <CommandGroup heading="Languages">
-                {LANGUAGES.map((lang) => (
-                  <CommandItem
-                    key={lang.code}
-                    value={`${lang.name} ${lang.nativeName ?? ''} ${lang.code}`}
-                    onSelect={() => handleSelect(lang.code)}
-                    className="text-xs gap-2"
-                  >
-                    <span className="flex-1 truncate">{lang.name}</span>
-                    {lang.nativeName && lang.nativeName !== lang.name && (
-                      <span className="text-muted-foreground text-[10px] truncate max-w-[80px]">
-                        {lang.nativeName}
-                      </span>
-                    )}
-                    <span className="text-muted-foreground/60 text-[10px] font-mono shrink-0">
-                      {lang.code}
-                    </span>
-                    {selectedLanguage === lang.code && (
-                      <Check className="w-3.5 h-3.5 text-primary shrink-0" />
-                    )}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-
-      {/* Detected language badge (shown when auto-detect is active and a language was detected) */}
-      {selectedLanguage === 'auto' && detectedLanguage && (
-        <Badge
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
           variant="outline"
-          className="text-[10px] h-5 px-1.5 border-primary/30 text-primary bg-primary/5 font-mono"
+          role="combobox"
+          aria-expanded={open}
+          className="w-44 justify-between text-xs h-8"
         >
-          Detected: {detectedLanguage}
-        </Badge>
-      )}
-    </div>
+          <div className="flex items-center gap-1.5 truncate">
+            <Globe className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{displayLabel}</span>
+            {value === 'auto' && latestDetectedLanguage && latestDetectedLanguage !== 'unknown' && (
+              <Badge variant="secondary" className="text-xs px-1 py-0 h-4 ml-1">
+                {latestDetectedLanguage.toUpperCase()}
+              </Badge>
+            )}
+          </div>
+          <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-0" align="start">
+        <Command>
+          <CommandInput placeholder={t('languageSelector.searchLanguages')} className="h-8 text-xs" />
+          <CommandList>
+            <CommandEmpty>No language found.</CommandEmpty>
+            <CommandGroup>
+              <CommandItem
+                value="auto"
+                onSelect={() => {
+                  onChange('auto');
+                  setOpen(false);
+                }}
+                className="text-xs"
+              >
+                <Check
+                  className={cn('mr-2 h-3.5 w-3.5', value === 'auto' ? 'opacity-100' : 'opacity-0')}
+                />
+                <span className="font-medium">Auto-detect</span>
+                {latestDetectedLanguage && latestDetectedLanguage !== 'unknown' && (
+                  <Badge variant="secondary" className="ml-auto text-xs px-1 py-0 h-4">
+                    {latestDetectedLanguage.toUpperCase()}
+                  </Badge>
+                )}
+              </CommandItem>
+              {LANGUAGES.map((lang) => (
+                <CommandItem
+                  key={lang.code}
+                  value={`${lang.name} ${lang.nativeName} ${lang.code}`}
+                  onSelect={() => {
+                    onChange(lang.code);
+                    setOpen(false);
+                  }}
+                  className="text-xs"
+                >
+                  <Check
+                    className={cn('mr-2 h-3.5 w-3.5', value === lang.code ? 'opacity-100' : 'opacity-0')}
+                  />
+                  <span>{lang.name}</span>
+                  <span className="ml-1 text-muted-foreground">({lang.nativeName})</span>
+                  <span className="ml-auto text-muted-foreground font-mono">{lang.code.toUpperCase()}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

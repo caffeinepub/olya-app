@@ -1,231 +1,125 @@
-import React, { useMemo } from 'react';
-import { TrendingUp, TrendingDown, Minus, Loader2, AlertTriangle, ShieldAlert, Info } from 'lucide-react';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import type { TranscriptEntry } from '@/hooks/useDashboardState';
-import type { PatternProfile } from '@/utils/patternPredictionEngine';
-import { predictNextPattern } from '@/utils/patternPredictionEngine';
-import { checkForHallucination } from '@/utils/hallucinationGuard';
-import { enforceEthics, formatViolationType } from '@/utils/ethicalConstraints';
-import { cn } from '@/lib/utils';
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, Clock } from 'lucide-react';
+import type { TranscriptEntry } from '../hooks/useDashboardState';
+import { predictPatterns, buildPatternProfile, type PatternProfile } from '../utils/patternPredictionEngine';
 
 interface PatternPredictionsPanelProps {
   entries: TranscriptEntry[];
-  profile: PatternProfile | null;
+  profile?: PatternProfile | null;
 }
 
-function VerifyBadge({ suspectPhrases }: { suspectPhrases: Array<{ phrase: string; reason: string }> }) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-amber/40 bg-amber/10 text-amber text-[9px] font-mono font-semibold hover:bg-amber/20 transition-colors">
-          <AlertTriangle size={9} />
-          Verify
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-2 text-xs" side="top">
-        <p className="font-semibold mb-1.5 text-amber">Suspect Phrases</p>
-        {suspectPhrases.map((sp, i) => (
-          <div key={i} className="mb-1.5 last:mb-0">
-            <p className="font-mono text-foreground/80">"{sp.phrase}"</p>
-            <p className="text-muted-foreground/70 text-[10px]">{sp.reason}</p>
-          </div>
-        ))}
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function WithheldNotice({ violationType }: { violationType: string | null }) {
-  return (
-    <div className="flex items-center gap-1.5 px-2 py-1.5 rounded bg-muted/20 border border-border/40">
-      <ShieldAlert size={12} className="text-muted-foreground/60 shrink-0" />
-      <span className="text-[10px] font-mono text-muted-foreground/60 italic">
-        Content withheld – ethical constraint triggered
-        {violationType && `: ${formatViolationType(violationType as Parameters<typeof formatViolationType>[0])}`}
-      </span>
-    </div>
-  );
-}
-
-const DIRECTION_CONFIG = {
-  escalating: {
-    icon: <TrendingUp size={14} className="text-red-400" />,
-    label: 'Escalating',
-    color: 'text-red-400',
-    barColor: 'bg-red-500',
-  },
-  'de-escalating': {
-    icon: <TrendingDown size={14} className="text-green-400" />,
-    label: 'De-escalating',
-    color: 'text-green-400',
-    barColor: 'bg-green-500',
-  },
-  stable: {
-    icon: <Minus size={14} className="text-amber" />,
-    label: 'Stable',
-    color: 'text-amber',
-    barColor: 'bg-amber-500',
-  },
+const DIRECTION_ICONS = {
+  escalating: <TrendingUp className="w-4 h-4 text-red-500" />,
+  'de-escalating': <TrendingDown className="w-4 h-4 text-green-500" />,
+  stable: <Minus className="w-4 h-4 text-yellow-500" />,
 };
 
-const URGENCY_CONFIG = {
-  immediate: { color: 'text-red-400', dot: 'bg-red-400' },
-  soon: { color: 'text-amber', dot: 'bg-amber-400' },
-  monitor: { color: 'text-green-400', dot: 'bg-green-400' },
+const DIRECTION_COLORS = {
+  escalating: 'text-red-500',
+  'de-escalating': 'text-green-500',
+  stable: 'text-yellow-500',
 };
 
-export default function PatternPredictionsPanel({
-  entries,
-  profile,
-}: PatternPredictionsPanelProps) {
-  const contextTexts = useMemo(
-    () => entries.slice(-5).map((e) => e.text),
-    [entries]
-  );
+const RISK_COLORS = {
+  low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+};
 
-  const prediction = useMemo(() => {
-    if (entries.length < 3) return null;
-    return predictNextPattern(entries, profile);
-  }, [entries, profile]);
+export default function PatternPredictionsPanel({ entries, profile: profileProp }: PatternPredictionsPanelProps) {
+  const prediction = predictPatterns(entries);
+  const profile = profileProp ?? buildPatternProfile(entries);
 
-  if (entries.length < 3) {
+  if (entries.length < 2) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center py-8 px-4 gap-3">
-        <Loader2 className="w-6 h-6 text-muted-foreground/30 animate-spin" />
-        <p className="text-xs font-mono text-muted-foreground/50">Building pattern baseline…</p>
-        <p className="text-[10px] font-mono text-muted-foreground/30">
-          {3 - entries.length} more {3 - entries.length === 1 ? 'entry' : 'entries'} needed
+      <div className="flex flex-col items-center justify-center h-32 gap-2 text-muted-foreground">
+        <Clock className="w-6 h-6 opacity-40" />
+        <p className="text-sm text-center">
+          Building baseline... Add at least 2 entries to see predictions.
         </p>
       </div>
     );
   }
 
-  if (!prediction) return null;
-
-  // Run hallucination guard on prediction texts
-  const emotionHallucination = checkForHallucination(
-    `Next emotion: ${prediction.nextEmotion.label}`,
-    contextTexts
-  );
-  const intentHallucination = checkForHallucination(
-    `Next intent: ${prediction.nextIntent.label}`,
-    contextTexts
-  );
-  const directionHallucination = checkForHallucination(
-    prediction.negotiationDirectionReasoning,
-    contextTexts
-  );
-  const windowHallucination = checkForHallucination(
-    prediction.deescalationWindow.reasoning,
-    contextTexts
-  );
-
-  // Run ethical constraints on prediction texts
-  const directionEthics = enforceEthics(prediction.negotiationDirectionReasoning);
-  const windowEthics = enforceEthics(prediction.deescalationWindow.reasoning);
-
-  const directionConfig = DIRECTION_CONFIG[prediction.negotiationDirection];
-  const urgencyConfig = URGENCY_CONFIG[prediction.deescalationWindow.urgency];
+  if (!prediction) {
+    return (
+      <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
+        Insufficient data for predictions.
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-3 p-3 h-full overflow-y-auto">
-      {/* Next Emotion */}
-      <div className="rounded-lg border border-border/40 bg-card/30 p-2.5">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground/70">
-            Next Emotion
-          </span>
-          {emotionHallucination.flagged && (
-            <VerifyBadge suspectPhrases={emotionHallucination.suspectPhrases} />
-          )}
+    <div className="space-y-3">
+      {/* Prediction cards */}
+      <div className="grid grid-cols-2 gap-2">
+        {/* Next Emotion */}
+        <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+          <p className="text-xs text-muted-foreground font-medium">Next Emotion</p>
+          <p className="text-sm font-semibold capitalize">{prediction.nextEmotion}</p>
+          <div className="flex items-center gap-1">
+            <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full"
+                style={{ width: `${Math.round(prediction.confidence * 100)}%` }}
+              />
+            </div>
+            <span className="text-xs text-muted-foreground">{Math.round(prediction.confidence * 100)}%</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-foreground capitalize">
-            {prediction.nextEmotion.label}
-          </span>
-          <span className="text-[10px] font-mono text-muted-foreground/60">
-            {Math.round(prediction.nextEmotion.confidence * 100)}% confidence
-          </span>
+
+        {/* Next Intent */}
+        <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+          <p className="text-xs text-muted-foreground font-medium">Next Intent</p>
+          <p className="text-sm font-semibold capitalize">{prediction.nextIntent.replace(/-/g, ' ')}</p>
+          <div className="flex items-center gap-1">
+            <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full"
+                style={{ width: `${Math.round(prediction.confidence * 100)}%` }}
+              />
+            </div>
+            <span className="text-xs text-muted-foreground">{Math.round(prediction.confidence * 100)}%</span>
+          </div>
         </div>
-        <div className="mt-1.5">
-          <Progress value={prediction.nextEmotion.confidence * 100} className="h-1" />
+
+        {/* Conversation Direction */}
+        <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+          <p className="text-xs text-muted-foreground font-medium">Direction</p>
+          <div className="flex items-center gap-1.5">
+            {DIRECTION_ICONS[prediction.conversationDirection]}
+            <span className={`text-sm font-semibold capitalize ${DIRECTION_COLORS[prediction.conversationDirection]}`}>
+              {prediction.conversationDirection}
+            </span>
+          </div>
+        </div>
+
+        {/* Hallucination Risk */}
+        <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+          <p className="text-xs text-muted-foreground font-medium">Guard Risk</p>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${RISK_COLORS[prediction.hallucinationRisk]}`}>
+            {prediction.hallucinationRisk === 'high' && <AlertTriangle className="w-3 h-3 mr-1" />}
+            {prediction.hallucinationRisk} risk
+          </span>
         </div>
       </div>
 
-      {/* Next Intent */}
-      <div className="rounded-lg border border-border/40 bg-card/30 p-2.5">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground/70">
-            Next Intent
-          </span>
-          {intentHallucination.flagged && (
-            <VerifyBadge suspectPhrases={intentHallucination.suspectPhrases} />
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-foreground capitalize">
-            {prediction.nextIntent.label.replace(/-/g, ' ')}
-          </span>
-          <span className="text-[10px] font-mono text-muted-foreground/60">
-            {Math.round(prediction.nextIntent.confidence * 100)}% confidence
-          </span>
-        </div>
-        <div className="mt-1.5">
-          <Progress value={prediction.nextIntent.confidence * 100} className="h-1" />
-        </div>
+      {/* Action Window */}
+      <div className="rounded-lg border border-border bg-muted/30 p-3">
+        <p className="text-xs text-muted-foreground font-medium mb-1">Action Window</p>
+        <p className="text-xs leading-relaxed">{prediction.actionWindow}</p>
       </div>
 
-      {/* Negotiation Direction */}
-      <div className="rounded-lg border border-border/40 bg-card/30 p-2.5">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground/70">
-            Conversation Direction
-          </span>
-          {directionHallucination.flagged && (
-            <VerifyBadge suspectPhrases={directionHallucination.suspectPhrases} />
-          )}
+      {/* Profile summary */}
+      {profile && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-muted-foreground">Profile:</span>
+          <Badge variant="outline" className="text-xs capitalize">{profile.dominantEmotion}</Badge>
+          <Badge variant="secondary" className="text-xs capitalize">{profile.dominantIntent.replace(/-/g, ' ')}</Badge>
+          <Badge variant="outline" className="text-xs">{profile.entryCount} entries</Badge>
         </div>
-        <div className="flex items-center gap-2 mb-1">
-          {directionConfig.icon}
-          <span className={cn('text-sm font-semibold', directionConfig.color)}>
-            {directionConfig.label}
-          </span>
-        </div>
-        {directionEthics.isViolation ? (
-          <WithheldNotice violationType={directionEthics.violationType} />
-        ) : (
-          <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
-            {prediction.negotiationDirectionReasoning}
-          </p>
-        )}
-      </div>
-
-      {/* De-escalation Window */}
-      <div className="rounded-lg border border-border/40 bg-card/30 p-2.5">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground/70">
-            Action Window
-          </span>
-          {windowHallucination.flagged && (
-            <VerifyBadge suspectPhrases={windowHallucination.suspectPhrases} />
-          )}
-        </div>
-        <div className="flex items-center gap-1.5 mb-1">
-          <div className={cn('w-1.5 h-1.5 rounded-full', urgencyConfig.dot)} />
-          <span className={cn('text-xs font-semibold font-mono', urgencyConfig.color)}>
-            {prediction.deescalationWindow.timing}
-          </span>
-        </div>
-        {windowEthics.isViolation ? (
-          <WithheldNotice violationType={windowEthics.violationType} />
-        ) : (
-          <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
-            {prediction.deescalationWindow.reasoning}
-          </p>
-        )}
-      </div>
+      )}
     </div>
   );
 }

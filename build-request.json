@@ -1,139 +1,37 @@
 {
   "kind": "build_request",
-  "title": "Conversation Pattern Learning with Bias Detection, Hallucination Guardrails, and Ethical Constraints",
-  "projectName": "Olya",
-  "priority": "normal",
+  "title": "Fix: New sessions cannot be created",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement a backend conversation pattern learning system that accumulates transcript entries across sessions and derives communication pattern metrics (e.g., dominant speaker roles, recurring intents, emotion trajectories, topic frequency). Store these aggregated pattern records per user in the backend actor so they persist across sessions and can be used for predictions.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-14"
-        ],
-        "quotes": [
-          "build on conversations and learn from the communication patterns (that is, active dialogues as well as the use of trained datasets) to make predictions"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend actor exposes a method to record a new transcript utterance and update running pattern statistics for the authenticated user.",
-        "Backend actor exposes a method to retrieve the current communication pattern profile (emotion trends, intent distribution, topic clusters) for the authenticated user.",
-        "Pattern data persists across canister upgrades via stable variables.",
-        "Pattern records accumulate across multiple sessions, not just the current one."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Implement a client-side prediction engine (extending the existing simulator utilities) that uses the accumulated communication pattern profile to generate forward-looking predictions: likely next emotion, probable intent, expected negotiation direction, and suggested de-escalation window. Display these predictions in a dedicated 'Pattern Predictions' panel on the Dashboard.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-14"
-        ],
-        "quotes": [
-          "learn from the communication patterns (that is, active dialogues as well as the use of trained datasets) to make predictions"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A PatternPredictionsPanel component renders predicted next emotion, next intent, conversation direction, and suggested action window.",
-        "Predictions update in real-time as new transcript entries are added.",
-        "The panel is integrated into Dashboard.tsx alongside the existing analysis panels.",
-        "If insufficient data exists (fewer than 3 entries), the panel displays a 'Building pattern baseline…' placeholder."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Extend the existing bias detection in ethicsSimulator.ts to cover a broader range of bias categories (gender, racial, socioeconomic, cognitive/confirmation bias) using expanded regex and keyword pattern sets. Store a per-session bias frequency log in the backend so operators can review historical bias incidents.",
+      "text": "Investigate and fix the bug preventing new conversation sessions from being created. Identify whether the failure originates in the backend `createSession` call, the React Query mutation in `useQueries.ts`, or the session creation handler in `Dashboard.tsx`, and restore full session creation functionality.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-14"
+          "msg-4"
         ],
         "quotes": [
-          "filter through for: Bias detection"
+          "New Sessions cannot be created. Fix this problem"
         ]
       },
       "acceptanceCriteria": [
-        "ethicsSimulator.ts detects at least four bias categories: gender, racial, socioeconomic, and confirmation bias.",
-        "Each detected bias instance is tagged with category, severity, and the offending text fragment.",
-        "Backend actor stores a bias log per session that is queryable by the frontend.",
-        "EthicsBadge component displays the specific bias category label when bias is detected.",
-        "A bias incident count is shown in SessionSummaryBar alongside the existing health score."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Implement a hallucination guardrail layer as a new frontend utility (hallucinationGuard.ts) that evaluates any AI-generated text (strategy recommendations, predictions) for signals of fabricated specificity: unsupported factual claims, invented statistics, unverifiable named references, and contradictions with prior transcript context. Flag and visually annotate any output that triggers the guardrail before it is shown to the operator.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-14"
-        ],
-        "quotes": [
-          "Hallucination guardrails"
-        ]
-      },
-      "acceptanceCriteria": [
-        "hallucinationGuard.ts exports a checkForHallucination(text, context) function returning a HallucinationResult with a boolean flagged field, a confidence score, and an array of suspect phrases.",
-        "Strategy recommendations from StrategyEnginePanel pass through the hallucination guard before rendering.",
-        "Pattern predictions from REQ-2 pass through the hallucination guard before rendering.",
-        "Flagged outputs are annotated with a visible warning indicator (e.g., yellow badge labeled 'Verify') and the suspect phrases are highlighted or listed.",
-        "Non-flagged outputs render normally with no additional UI noise."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Implement an ethical constraints enforcement layer that runs on every transcript entry and every AI-generated output (strategies, predictions). Define a set of hard ethical rules (no personal attacks, no manipulative framing, no dehumanizing language, no coercive pressure tactics) and block or redact content that violates them. Log ethical violations per session in the backend.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-14"
-        ],
-        "quotes": [
-          "Ethical constraints"
-        ]
-      },
-      "acceptanceCriteria": [
-        "An ethicalConstraints.ts utility exports an enforceEthics(text) function that returns an EnforcementResult with isViolation, violationType, and sanitizedText fields.",
-        "Transcript entries that trigger an ethical violation are visually flagged in TranscriptPanel with a red 'Ethics Violation' badge and the sanitized text is displayed.",
-        "AI-generated strategies or predictions that violate ethical constraints are blocked from rendering and replaced with a 'Content withheld – ethical constraint triggered' notice.",
-        "Backend actor stores an ethical violation log per session queryable by the authenticated user.",
-        "The EthicsBadge component is updated to cover the new violation types alongside existing bias/toxic statuses."
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Add a 'Safety & Quality Dashboard' section in the UI (accessible from the session view) that consolidates: bias incident count and categories, hallucination flag rate for the current session, ethical violation count, and an overall Trustworthiness Score derived from these three metrics. Display trends over the session lifetime.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-14"
-        ],
-        "quotes": [
-          "filter through for: Bias detection, Hallucination guardrails, and Ethical constraints"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A SafetyQualityPanel component is added to Dashboard.tsx and renders bias count, hallucination flag rate (%), ethical violation count, and Trustworthiness Score (0–100).",
-        "Trustworthiness Score decreases as bias, hallucination, and ethical violations accumulate, and is color-coded (green ≥80, amber 50–79, red <50).",
-        "All four metrics update in real-time as new entries are added during a session.",
-        "The panel integrates with PanelContainer for consistent visual styling."
+        "Clicking the 'New Session' (or equivalent) button in the SessionManager successfully creates a new session.",
+        "The newly created session appears immediately in the session list without requiring a page refresh.",
+        "The newly created session becomes the active session.",
+        "No errors are thrown in the browser console or backend logs when creating a session.",
+        "Session creation works for both authenticated and guest users if both flows are supported."
       ]
     }
   ],
   "constraints": [
-    "All Motoko logic must remain in the single backend/main.mo actor; no new canisters or microservices.",
-    "LLM or external AI service integrations are not permitted; all prediction and guardrail logic must be implemented client-side or in the Motoko actor.",
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
-    "Existing ethicsSimulator.ts and EthicsBadge.tsx must be extended, not replaced, to preserve backward compatibility with current session data."
+    "Do not alter the app language selection feature that was just fixed.",
+    "Do not break existing session listing, selection, or deletion functionality."
   ],
   "nonGoals": [
-    "Integration with any external NLP or AI service API.",
-    "Real-time WebSocket-based collaboration or multi-user sessions.",
-    "Training or fine-tuning any machine learning model; all pattern learning is heuristic/rule-based.",
-    "Automated moderation actions (e.g., locking sessions); the system flags and informs but does not auto-block users.",
-    "Changes to the Internet Identity authentication flow."
+    "Redesigning the session management UI.",
+    "Adding new session fields or metadata beyond what already exists.",
+    "Changes to transcript entry creation or deletion."
   ],
   "imageRequirements": {
     "required": [],

@@ -1,90 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "AI application (Olya App) that learns from conversation patterns and trained datasets to make predictions, with filtering for bias detection, hallucination guardrails, and ethical constraints.",
-  "architectural_notes": [
-    "AI pipeline: conversation learning + trained dataset integration → prediction engine → bias/hallucination/ethics filters → output"
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [
+    "New sessions cannot be created"
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-implement-a-client-side-prediction-engine-extending-the-existing-simulator-utilities-that-uses-the-accumulated-communication-pattern-profile-to-generate-forward-looking-predictions-likely-next-emotion-probable-intent-expected-negotiation-direction-and-suggested-de-escalation-window-display-these-predictions-in-a-dedicated-pattern-predictions-panel-on-the-dashboard",
-      "title": "Implement a client-side prediction engine (extending the existing simulator utilities) that uses the accumulated communication pattern profile to generate forward-looking predictions: likely next emotion, probable intent, expected negotiation direction, and suggested de-escalation window. Display these predictions in a dedicated 'Pattern Predictions' panel on the Dashboard.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-extend-the-existing-bias-detection-in-ethicssimulator-ts-to-cover-a-broader-range-of-bias-categories-gender-racial-socioeconomic-cognitive-confirmation-bias-using-expanded-regex-and-keyword-pattern-sets-store-a-per-session-bias-frequency-log-in-the-backend-so-operators-can-review-historical-bias-incidents",
-      "title": "Extend the existing bias detection in ethicsSimulator.ts to cover a broader range of bias categories (gender, racial, socioeconomic, cognitive/confirmation bias) using expanded regex and keyword pattern sets. Store a per-session bias frequency log in the backend so operators can review historical bias incidents.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-a-hallucination-guardrail-layer-as-a-new-frontend-utility-hallucinationguard-ts-that-evaluates-any-ai-generated-text-strategy-recommendations-predictions-for-signals-of-fabricated-specificity-unsupported-factual-claims-invented-statistics-unverifiable-named-references-and-contradictions-with-prior-transcript-context-flag-and-visually-annotate-any-output-that-triggers-the-guardrail-before-it-is-shown-to-the-operator",
-      "title": "Implement a hallucination guardrail layer as a new frontend utility (hallucinationGuard.ts) that evaluates any AI-generated text (strategy recommendations, predictions) for signals of fabricated specificity: unsupported factual claims, invented statistics, unverifiable named references, and contradictions with prior transcript context. Flag and visually annotate any output that triggers the guardrail before it is shown to the operator.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-an-ethical-constraints-enforcement-layer-that-runs-on-every-transcript-entry-and-every-ai-generated-output-strategies-predictions-define-a-set-of-hard-ethical-rules-no-personal-attacks-no-manipulative-framing-no-dehumanizing-language-no-coercive-pressure-tactics-and-block-or-redact-content-that-violates-them-log-ethical-violations-per-session-in-the-backend",
-      "title": "Implement an ethical constraints enforcement layer that runs on every transcript entry and every AI-generated output (strategies, predictions). Define a set of hard ethical rules (no personal attacks, no manipulative framing, no dehumanizing language, no coercive pressure tactics) and block or redact content that violates them. Log ethical violations per session in the backend.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-safety-quality-dashboard-section-in-the-ui-accessible-from-the-session-view-that-consolidates-bias-incident-count-and-categories-hallucination-flag-rate-for-the-current-session-ethical-violation-count-and-an-overall-trustworthiness-score-derived-from-these-three-metrics-display-trends-over-the-session-lifetime",
-      "title": "Add a 'Safety & Quality Dashboard' section in the UI (accessible from the session view) that consolidates: bias incident count and categories, hallucination flag rate for the current session, ethical violation count, and an overall Trustworthiness Score derived from these three metrics. Display trends over the session lifetime.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    }
-  ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Learn from active dialogues and trained datasets to identify communication patterns and make predictions",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Bias detection filter applied to AI outputs",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Hallucination guardrails to prevent false or fabricated information in responses",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Ethical constraints filter applied to AI outputs",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Implement a backend conversation pattern learning system that accumulates transcript entries across sessions and derives communication pattern metrics (e.g., dominant speaker roles, recurring intents, emotion trajectories, topic frequency). Store these aggregated pattern records per user in the backend actor so they persist across sessions and can be used for predictions.",
+      "id": "feature-investigate-and-fix-the-bug-preventing-new-conversation-sessions-from-being-created-identify-whether-the-failure-originates-in-the-backend-createsession-call-the-react-query-mutation-in-usequeries-ts-or-the-session-creation-handler-in-dashboard-tsx-and-restore-full-session-creation-functionality",
+      "title": "Investigate and fix the bug preventing new conversation sessions from being created. Identify whether the failure originates in the backend `createSession` call, the React Query mutation in `useQueries.ts`, or the session creation handler in `Dashboard.tsx`, and restore full session creation functionality.",
       "reqIds": [
         "REQ-1"
       ],
-      "status": "pending"
+      "version": 1
     }
   ],
-  "gameProjectType": "none",
-  "projectName": "Olya App",
+  "new_feature_requests": [],
+  "projectName": "Fix: New sessions cannot be created",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,176 +1,94 @@
 import React from 'react';
-import {
-  Activity,
-  MessageSquare,
-  Zap,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  AlertTriangle,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-export interface SessionMetrics {
-  healthScore: number;
-  exchangeCount: number;
-  dominantEmotion: string;
-  topStrategy: string;
-  biasCount?: number;
-}
+import { Badge } from '@/components/ui/badge';
+import { Activity, Heart, MessageSquare, TrendingUp, AlertTriangle } from 'lucide-react';
+import type { TranscriptEntry, BeliefState } from '../hooks/useDashboardState';
 
 interface SessionSummaryBarProps {
-  metrics: SessionMetrics;
-  sessionName?: string;
-  isReadOnly?: boolean;
+  entries: TranscriptEntry[];
+  beliefState: BeliefState;
 }
 
-function HealthGauge({ score }: { score: number }) {
-  const color =
-    score >= 70
-      ? 'oklch(0.65 0.18 145)'
-      : score >= 40
-      ? 'oklch(0.75 0.18 55)'
-      : 'oklch(0.62 0.22 25)';
-  const TrendIcon =
-    score >= 70 ? TrendingUp : score >= 40 ? Minus : TrendingDown;
+export default function SessionSummaryBar({ entries, beliefState }: SessionSummaryBarProps) {
+  const exchangeCount = entries.length;
 
-  return (
-    <div className="flex items-center gap-2">
-      <div className="relative w-10 h-10">
-        <svg viewBox="0 0 40 40" className="w-full h-full -rotate-90">
-          <circle
-            cx="20"
-            cy="20"
-            r="16"
-            fill="none"
-            stroke="oklch(0.28 0.04 220)"
-            strokeWidth="3"
-          />
-          <circle
-            cx="20"
-            cy="20"
-            r="16"
-            fill="none"
-            stroke={color}
-            strokeWidth="3"
-            strokeDasharray={`${score} 100`}
-            strokeDashoffset="0"
-            strokeLinecap="round"
-            style={{ transition: 'stroke-dasharray 0.5s ease' }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span
-            className="text-[9px] font-mono font-bold"
-            style={{ color }}
-          >
-            {score}
-          </span>
-        </div>
-      </div>
-      <div>
-        <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-wider">
-          Health
-        </p>
-        <div className="flex items-center gap-1">
-          <TrendIcon size={10} style={{ color }} />
-          <span
-            className="text-[10px] font-mono font-semibold"
-            style={{ color }}
-          >
-            {score >= 70 ? 'Stable' : score >= 40 ? 'Caution' : 'Critical'}
-          </span>
-        </div>
-      </div>
-    </div>
+  const dominantEmotion =
+    entries.length > 0
+      ? (() => {
+          const counts: Record<string, number> = {};
+          for (const e of entries) {
+            const top = e.emotions[0]?.emotionType ?? 'neutral';
+            counts[top] = (counts[top] ?? 0) + 1;
+          }
+          return Object.entries(counts).sort(([, a], [, b]) => b - a)[0]?.[0] ?? 'neutral';
+        })()
+      : 'neutral';
+
+  const topStrategy =
+    entries.length > 0
+      ? entries[entries.length - 1]?.strategies[0]?.strategy ?? 'None'
+      : 'None';
+
+  const biasIncidents = entries.filter((e) => e.toxicityFlags.length > 0).length;
+
+  const healthScore = Math.max(
+    0,
+    Math.min(100, beliefState.trustLevel - biasIncidents * 5)
   );
-}
 
-export default function SessionSummaryBar({
-  metrics,
-  sessionName,
-  isReadOnly,
-}: SessionSummaryBarProps) {
-  const biasCount = metrics.biasCount ?? 0;
+  const healthColor =
+    healthScore >= 70 ? 'text-green-500' :
+    healthScore >= 40 ? 'text-yellow-500' :
+    'text-red-500';
+
   const biasColor =
-    biasCount === 0
-      ? 'text-green-400'
-      : biasCount <= 3
-      ? 'text-amber'
-      : 'text-red-400';
+    biasIncidents === 0 ? 'text-green-500' :
+    biasIncidents <= 3 ? 'text-yellow-500' :
+    'text-red-500';
 
   return (
-    <div className="flex items-center gap-4 px-4 py-2.5 bg-navy/80 border-b border-border/50 backdrop-blur-sm">
-      <HealthGauge score={metrics.healthScore} />
-
-      <div className="w-px h-8 bg-border/50" />
-
-      <div className="flex items-center gap-4 flex-1 flex-wrap">
+    <div className="rounded-xl border border-border bg-card p-3">
+      <div className="flex items-center gap-4 flex-wrap">
+        {/* Health Score */}
         <div className="flex items-center gap-1.5">
-          <MessageSquare size={12} className="text-teal/60" />
-          <div>
-            <p className="text-[9px] font-mono text-muted-foreground/60">
-              Exchanges
-            </p>
-            <p className="text-sm font-mono font-bold text-foreground">
-              {metrics.exchangeCount}
-            </p>
-          </div>
+          <Heart className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">Health</span>
+          <span className={`text-sm font-bold ${healthColor}`}>{healthScore}%</span>
         </div>
 
+        <div className="w-px h-4 bg-border hidden sm:block" />
+
+        {/* Exchange Count */}
         <div className="flex items-center gap-1.5">
-          <Activity size={12} className="text-amber/60" />
-          <div>
-            <p className="text-[9px] font-mono text-muted-foreground/60">
-              Dominant Emotion
-            </p>
-            <p className="text-xs font-mono font-semibold text-foreground">
-              {metrics.dominantEmotion}
-            </p>
-          </div>
+          <MessageSquare className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">Exchanges</span>
+          <span className="text-sm font-bold">{exchangeCount}</span>
         </div>
 
+        <div className="w-px h-4 bg-border hidden sm:block" />
+
+        {/* Dominant Emotion */}
         <div className="flex items-center gap-1.5">
-          <AlertTriangle size={12} className={cn('shrink-0', biasColor)} />
-          <div>
-            <p className="text-[9px] font-mono text-muted-foreground/60">
-              Bias Incidents
-            </p>
-            <p className={cn('text-sm font-mono font-bold', biasColor)}>
-              {biasCount}
-            </p>
-          </div>
+          <Activity className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">Emotion</span>
+          <Badge variant="secondary" className="text-xs capitalize">{dominantEmotion}</Badge>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <Zap size={12} className="text-teal/60 shrink-0" />
-          <div className="min-w-0">
-            <p className="text-[9px] font-mono text-muted-foreground/60">
-              Top Strategy
-            </p>
-            <p className="text-xs font-mono font-semibold text-foreground truncate">
-              {metrics.topStrategy}
-            </p>
-          </div>
+        <div className="w-px h-4 bg-border hidden sm:block" />
+
+        {/* Top Strategy */}
+        <div className="flex items-center gap-1.5">
+          <TrendingUp className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">Strategy</span>
+          <span className="text-xs font-medium truncate max-w-32">{topStrategy}</span>
         </div>
-      </div>
 
-      <div className="w-px h-8 bg-border/50" />
+        <div className="w-px h-4 bg-border hidden sm:block" />
 
-      <div className="flex items-center gap-2">
-        {isReadOnly && (
-          <span className="px-2 py-0.5 rounded border border-amber/30 bg-amber/10 text-amber text-[9px] font-mono">
-            READ-ONLY
-          </span>
-        )}
-        {sessionName && (
-          <span className="text-[10px] font-mono text-muted-foreground/60 max-w-32 truncate">
-            {sessionName}
-          </span>
-        )}
-        <div className="flex items-center gap-1">
-          <div className="status-dot" />
-          <span className="text-[9px] font-mono text-teal/70">LIVE</span>
+        {/* Bias Incidents */}
+        <div className="flex items-center gap-1.5">
+          <AlertTriangle className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">Bias</span>
+          <span className={`text-sm font-bold ${biasColor}`}>{biasIncidents}</span>
         </div>
       </div>
     </div>

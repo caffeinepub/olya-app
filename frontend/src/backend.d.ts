@@ -11,12 +11,17 @@ export interface ExtendedConversationSession {
     biasLog: Array<BiasCategory>;
     patterns: Array<ConversationPattern>;
     owner: Principal;
+    transcriptEntries: Array<TranscriptEntry>;
     timestamp: Time;
     rawTranscript: string;
     sessionId: string;
     ethicalViolations: Array<EthicalViolation>;
 }
 export type Time = bigint;
+export interface TranscriptEntry {
+    text: string;
+    detectedLanguage: string;
+}
 export interface EthicalViolation {
     count: bigint;
     violationType: string;
@@ -45,7 +50,7 @@ export interface backendInterface {
     /**
      * / Create session with ethics checks (users only)
      */
-    createSession(sessionId: string, rawTranscript: string): Promise<ExtendedConversationSession>;
+    createSession(sessionId: string, rawTranscript: string, transcriptEntries: Array<TranscriptEntry>): Promise<ExtendedConversationSession>;
     /**
      * / Delete session (owner only)
      */
@@ -82,5 +87,5 @@ export interface backendInterface {
     /**
      * / Update session transcript and patterns (owner only)
      */
-    updateSession(sessionId: string, rawTranscript: string, patterns: Array<ConversationPattern>): Promise<void>;
+    updateSession(sessionId: string, rawTranscript: string, transcriptEntries: Array<TranscriptEntry>, patterns: Array<ConversationPattern>): Promise<void>;
 }

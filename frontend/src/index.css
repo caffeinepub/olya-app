@@ -236,6 +236,16 @@
     box-shadow: 0 0 6px oklch(0.65 0.18 145);
   }
 
+  .status-dot-purple {
+    background: oklch(0.65 0.20 300);
+    box-shadow: 0 0 6px oklch(0.65 0.20 300);
+  }
+
+  .status-dot-orange {
+    background: oklch(0.72 0.18 55);
+    box-shadow: 0 0 6px oklch(0.72 0.18 55);
+  }
+
   .corner-bracket {
     position: relative;
   }
@@ -260,5 +270,134 @@
     bottom: 0;
     right: 0;
     border-width: 0 1px 1px 0;
+  }
+}
+
+/* ── Print / PDF styles ── */
+@media print {
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 20mm 18mm 20mm 18mm;
+  }
+
+  /* Hide interactive / navigation elements */
+  header,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for readability */
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  /* Ensure the manual content fills the page */
+  .max-w-5xl {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Section page breaks */
+  section {
+    page-break-inside: avoid;
+  }
+
+  /* Headings */
+  h1 { font-size: 22pt; color: #0a0a0a; }
+  h2 { font-size: 14pt; color: #0a0a0a; }
+  h3 { font-size: 10pt; color: oklch(0.55 0.14 185); }
+
+  /* Cards and boxes */
+  .rounded,
+  .rounded-lg,
+  [class*="rounded"] {
+    border-radius: 3px !important;
+  }
+
+  /* Preserve teal color for branding elements */
+  .text-teal,
+  .teal-text,
+  .panel-label {
+    color: oklch(0.55 0.14 185) !important;
+  }
+
+  /* Borders */
+  .border,
+  [class*="border-"] {
+    border-color: #cccccc !important;
+  }
+
+  /* Background cards — light gray for print */
+  .bg-card\/30,
+  .bg-card\/50,
+  [class*="bg-card"] {
+    background-color: #f8f8f8 !important;
+  }
+
+  /* Muted text */
+  .text-muted-foreground,
+  [class*="text-muted"] {
+    color: #555555 !important;
+  }
+
+  /* Foreground text */
+  .text-foreground\/80,
+  .text-foreground\/70,
+  .text-foreground\/60,
+  [class*="text-foreground"] {
+    color: #222222 !important;
+  }
+
+  /* Links */
+  a {
+    color: oklch(0.55 0.14 185) !important;
+    text-decoration: none !important;
+  }
+
+  /* Hide download button and back link in print */
+  button,
+  .print\:no-underline {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print\:flex {
+    display: flex !important;
+  }
+
+  .print\:block {
+    display: block !important;
+  }
+
+  /* Separator */
+  hr,
+  [data-orientation="horizontal"] {
+    border-color: #dddddd !important;
+  }
+
+  /* Ensure images print */
+  img {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Table of contents links */
+  .print\:no-underline a {
+    text-decoration: none !important;
+  }
+
+  /* Page break after TOC */
+  .print\:break-after-page {
+    page-break-after: always;
+  }
+
+  /* Avoid breaking inside cards */
+  .print\:break-inside-avoid-page {
+    page-break-inside: avoid;
   }
 }

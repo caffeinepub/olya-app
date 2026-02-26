@@ -13,6 +13,10 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const TranscriptEntry = IDL.Record({
+  'text' : IDL.Text,
+  'detectedLanguage' : IDL.Text,
+});
 export const BiasCategory = IDL.Record({
   'count' : IDL.Nat,
   'category' : IDL.Text,
@@ -33,6 +37,7 @@ export const ExtendedConversationSession = IDL.Record({
   'biasLog' : IDL.Vec(BiasCategory),
   'patterns' : IDL.Vec(ConversationPattern),
   'owner' : IDL.Principal,
+  'transcriptEntries' : IDL.Vec(TranscriptEntry),
   'timestamp' : Time,
   'rawTranscript' : IDL.Text,
   'sessionId' : IDL.Text,
@@ -44,7 +49,7 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createSession' : IDL.Func(
-      [IDL.Text, IDL.Text],
+      [IDL.Text, IDL.Text, IDL.Vec(TranscriptEntry)],
       [ExtendedConversationSession],
       [],
     ),
@@ -86,7 +91,12 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateSession' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Vec(ConversationPattern)],
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Vec(TranscriptEntry),
+        IDL.Vec(ConversationPattern),
+      ],
       [],
       [],
     ),
@@ -99,6 +109,10 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const TranscriptEntry = IDL.Record({
+    'text' : IDL.Text,
+    'detectedLanguage' : IDL.Text,
   });
   const BiasCategory = IDL.Record({ 'count' : IDL.Nat, 'category' : IDL.Text });
   const ConversationPattern = IDL.Record({
@@ -117,6 +131,7 @@ export const idlFactory = ({ IDL }) => {
     'biasLog' : IDL.Vec(BiasCategory),
     'patterns' : IDL.Vec(ConversationPattern),
     'owner' : IDL.Principal,
+    'transcriptEntries' : IDL.Vec(TranscriptEntry),
     'timestamp' : Time,
     'rawTranscript' : IDL.Text,
     'sessionId' : IDL.Text,
@@ -128,7 +143,7 @@ export const idlFactory = ({ IDL }) => {
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createSession' : IDL.Func(
-        [IDL.Text, IDL.Text],
+        [IDL.Text, IDL.Text, IDL.Vec(TranscriptEntry)],
         [ExtendedConversationSession],
         [],
       ),
@@ -174,7 +189,12 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateSession' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Vec(ConversationPattern)],
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Vec(TranscriptEntry),
+          IDL.Vec(ConversationPattern),
+        ],
         [],
         [],
       ),

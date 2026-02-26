@@ -93,12 +93,17 @@ export interface ExtendedConversationSession {
     biasLog: Array<BiasCategory>;
     patterns: Array<ConversationPattern>;
     owner: Principal;
+    transcriptEntries: Array<TranscriptEntry>;
     timestamp: Time;
     rawTranscript: string;
     sessionId: string;
     ethicalViolations: Array<EthicalViolation>;
 }
 export type Time = bigint;
+export interface TranscriptEntry {
+    text: string;
+    detectedLanguage: string;
+}
 export interface EthicalViolation {
     count: bigint;
     violationType: string;
@@ -128,7 +133,7 @@ export interface backendInterface {
     /**
      * / Create session with ethics checks (users only)
      */
-    createSession(sessionId: string, rawTranscript: string): Promise<ExtendedConversationSession>;
+    createSession(sessionId: string, rawTranscript: string, transcriptEntries: Array<TranscriptEntry>): Promise<ExtendedConversationSession>;
     /**
      * / Delete session (owner only)
      */
@@ -165,7 +170,7 @@ export interface backendInterface {
     /**
      * / Update session transcript and patterns (owner only)
      */
-    updateSession(sessionId: string, rawTranscript: string, patterns: Array<ConversationPattern>): Promise<void>;
+    updateSession(sessionId: string, rawTranscript: string, transcriptEntries: Array<TranscriptEntry>, patterns: Array<ConversationPattern>): Promise<void>;
 }
 import type { UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -198,17 +203,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createSession(arg0: string, arg1: string): Promise<ExtendedConversationSession> {
+    async createSession(arg0: string, arg1: string, arg2: Array<TranscriptEntry>): Promise<ExtendedConversationSession> {
         if (this.processError) {
             try {
-                const result = await this.actor.createSession(arg0, arg1);
+                const result = await this.actor.createSession(arg0, arg1, arg2);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createSession(arg0, arg1);
+            const result = await this.actor.createSession(arg0, arg1, arg2);
             return result;
         }
     }
@@ -370,17 +375,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateSession(arg0: string, arg1: string, arg2: Array<ConversationPattern>): Promise<void> {
+    async updateSession(arg0: string, arg1: string, arg2: Array<TranscriptEntry>, arg3: Array<ConversationPattern>): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateSession(arg0, arg1, arg2);
+                const result = await this.actor.updateSession(arg0, arg1, arg2, arg3);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateSession(arg0, arg1, arg2);
+            const result = await this.actor.updateSession(arg0, arg1, arg2, arg3);
             return result;
         }
     }

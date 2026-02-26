@@ -1,7 +1,7 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Mic, MicOff, Send, AlertCircle, User } from 'lucide-react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -9,245 +9,151 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
-import { useLanguagePreference } from '@/hooks/useLanguagePreference';
-import LanguageSelector from '@/components/LanguageSelector';
-import { cn } from '@/lib/utils';
+import { Mic, MicOff, Send, Radio } from 'lucide-react';
+import type { SpeakerRole } from '../hooks/useDashboardState';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
+import { useAsrEnginePreference } from '../hooks/useAsrEnginePreference';
+import { detectLanguage } from '../utils/languageDetector';
 
-export type SpeakerRole = 'Operator' | 'Subject' | 'Witness' | 'Unknown';
-
-export const SPEAKER_ROLES: SpeakerRole[] = [
-  'Operator',
-  'Subject',
-  'Witness',
-  'Unknown',
-];
-
-export const SPEAKER_COLORS: Record<SpeakerRole, string> = {
-  Operator: 'text-blue-400 bg-blue-400/10 border-blue-400/30',
-  Subject: 'text-amber-400 bg-amber-400/10 border-amber-400/30',
-  Witness: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30',
-  Unknown: 'text-slate-400 bg-slate-400/10 border-slate-400/30',
-};
+type AsrEngine = 'webSpeech' | 'whisper' | 'deepspeech';
 
 interface TranscriptInputProps {
-  onSubmit: (text: string, speaker: SpeakerRole) => void;
+  onAddEntry: (text: string, speaker: SpeakerRole, detectedLanguage?: string) => void;
+  onAsrEngineChange?: (engine: AsrEngine) => void;
   disabled?: boolean;
 }
 
-export default function TranscriptInput({
-  onSubmit,
-  disabled = false,
-}: TranscriptInputProps) {
+const SPEAKER_OPTIONS: SpeakerRole[] = ['Operator', 'Subject', 'Witness', 'Unknown'];
+
+const ENGINE_LABELS: Record<AsrEngine, string> = {
+  webSpeech: 'Web Speech API',
+  whisper: 'Whisper',
+  deepspeech: 'DeepSpeech',
+};
+
+const ENGINE_COLORS: Record<AsrEngine, string> = {
+  webSpeech: 'bg-green-500',
+  whisper: 'bg-blue-500',
+  deepspeech: 'bg-purple-500',
+};
+
+export default function TranscriptInput({ onAddEntry, onAsrEngineChange, disabled }: TranscriptInputProps) {
   const [text, setText] = useState('');
   const [speaker, setSpeaker] = useState<SpeakerRole>('Operator');
-  const [interimText, setInterimText] = useState('');
+  const { asrEngine, setAsrEngine } = useAsrEnginePreference();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { language, setLanguage } = useLanguagePreference();
-
-  const handleInterimResult = useCallback((interim: string) => {
-    setInterimText(interim);
-  }, []);
-
-  const handleFinalResult = useCallback((final: string) => {
-    setText((prev) => {
-      const trimmed = prev.trimEnd();
-      return trimmed ? trimmed + ' ' + final : final;
-    });
-    setInterimText('');
-  }, []);
-
-  const {
-    isListening,
-    isSupported,
-    error: asrError,
-    detectedLanguage,
-    toggleListening,
-    stopListening,
-    clearError,
-  } = useSpeechRecognition({
-    onInterimResult: handleInterimResult,
-    onFinalResult: handleFinalResult,
-    lang: language,
+  const { isListening, startListening, stopListening, processingStatus } = useSpeechRecognition({
+    asrEngine,
+    onFinalResult: (transcript: string) => {
+      const detectedLang = detectLanguage(transcript);
+      onAddEntry(transcript, speaker, detectedLang);
+    },
   });
 
-  const handleSubmit = useCallback(() => {
-    const finalText = (text + (interimText ? ' ' + interimText : '')).trim();
-    if (!finalText) return;
-
-    // Stop microphone if active
-    if (isListening) {
-      stopListening();
-    }
-    setInterimText('');
-
-    onSubmit(finalText, speaker);
+  const handleSubmit = () => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const detectedLang = detectLanguage(trimmed);
+    onAddEntry(trimmed, speaker, detectedLang);
     setText('');
     textareaRef.current?.focus();
-  }, [text, interimText, isListening, stopListening, onSubmit, speaker]);
+  };
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        handleSubmit();
-      }
-    },
-    [handleSubmit]
-  );
-
-  // Auto-clear ASR error after 5 seconds
-  useEffect(() => {
-    if (asrError) {
-      const timer = setTimeout(clearError, 5000);
-      return () => clearTimeout(timer);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
     }
-  }, [asrError, clearError]);
+  };
 
-  const displayText = text + (interimText ? (text ? ' ' : '') + interimText : '');
-  const canSubmit = (text.trim() || interimText.trim()) && !disabled;
-
-  const asrErrorMessage: Record<string, string> = {
-    'not-supported': 'Speech recognition is not supported in this browser.',
-    'permission-denied': 'Microphone access denied. Please allow microphone permissions.',
-    'no-speech': 'No speech detected. Please try again.',
-    'audio-capture': 'No microphone found. Please connect a microphone.',
-    network: 'Network error during speech recognition.',
-    unknown: 'Speech recognition error. Please try again.',
+  const handleEngineChange = (engine: AsrEngine) => {
+    setAsrEngine(engine);
+    onAsrEngineChange?.(engine);
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* Speaker + Language selectors row */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className="space-y-3">
+      {/* Controls row */}
+      <div className="flex items-center gap-2 flex-wrap">
         {/* Speaker selector */}
-        <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-muted-foreground shrink-0" />
-          <Select
-            value={speaker}
-            onValueChange={(v) => setSpeaker(v as SpeakerRole)}
-            disabled={disabled}
-          >
-            <SelectTrigger className="w-40 h-8 text-xs bg-background/50 border-border/50">
-              <SelectValue placeholder="Speaker" />
-            </SelectTrigger>
-            <SelectContent>
-              {SPEAKER_ROLES.map((role) => (
-                <SelectItem key={role} value={role} className="text-xs">
-                  <span className={cn('font-medium', SPEAKER_COLORS[role].split(' ')[0])}>
-                    {role}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={speaker} onValueChange={(v) => setSpeaker(v as SpeakerRole)}>
+          <SelectTrigger className="w-32 h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SPEAKER_OPTIONS.map((role) => (
+              <SelectItem key={role} value={role} className="text-xs">
+                {role}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        {/* Language selector */}
-        <LanguageSelector
-          selectedLanguage={language}
-          onLanguageChange={setLanguage}
-          detectedLanguage={detectedLanguage}
-          disabled={disabled}
-        />
+        {/* ASR Engine selector */}
+        <Select value={asrEngine} onValueChange={(v) => handleEngineChange(v as AsrEngine)}>
+          <SelectTrigger className="w-36 h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {(Object.keys(ENGINE_LABELS) as AsrEngine[]).map((engine) => (
+              <SelectItem key={engine} value={engine} className="text-xs">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${ENGINE_COLORS[engine]}`} />
+                  {ENGINE_LABELS[engine]}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Recording status */}
+        {isListening && (
+          <Badge variant="destructive" className="text-xs flex items-center gap-1 animate-pulse">
+            <Radio className="w-3 h-3" />
+            Recording
+          </Badge>
+        )}
+        {processingStatus && !isListening && (
+          <Badge variant="secondary" className="text-xs">
+            {processingStatus}
+          </Badge>
+        )}
       </div>
 
-      {/* ASR error message */}
-      {asrError && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-xs">
-          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-          <span>{asrErrorMessage[asrError] ?? asrErrorMessage.unknown}</span>
-        </div>
-      )}
-
-      {/* Textarea + controls */}
-      <div className="relative flex gap-2 items-end">
-        <div className="relative flex-1">
-          <Textarea
-            ref={textareaRef}
-            value={displayText}
-            onChange={(e) => {
-              // Only update the committed text; interim is overlaid
-              setText(e.target.value);
-              setInterimText('');
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              isListening
-                ? 'Listening… speak now'
-                : 'Type transcript or use microphone… (Ctrl+Enter to submit)'
-            }
-            disabled={disabled}
-            rows={3}
-            className={cn(
-              'resize-none text-sm bg-background/50 border-border/50 pr-2 transition-all',
-              isListening && 'border-primary/60 ring-1 ring-primary/30',
-              interimText && 'text-muted-foreground'
-            )}
-          />
-          {isListening && (
-            <span className="absolute top-2 right-2 flex items-center gap-1">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-              </span>
-            </span>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          {/* Microphone button */}
-          {isSupported ? (
-            <Button
-              type="button"
-              variant={isListening ? 'default' : 'outline'}
-              size="icon"
-              onClick={toggleListening}
-              disabled={disabled}
-              title={isListening ? 'Stop microphone' : 'Start microphone'}
-              className={cn(
-                'h-9 w-9 transition-all',
-                isListening &&
-                  'bg-primary text-primary-foreground shadow-lg shadow-primary/30 animate-pulse'
-              )}
-            >
-              {isListening ? (
-                <MicOff className="w-4 h-4" />
-              ) : (
-                <Mic className="w-4 h-4" />
-              )}
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              disabled
-              title="Speech recognition not supported"
-              className="h-9 w-9 opacity-40"
-            >
-              <MicOff className="w-4 h-4" />
-            </Button>
-          )}
-
-          {/* Submit button */}
+      {/* Text input row */}
+      <div className="flex gap-2">
+        <Textarea
+          ref={textareaRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type transcript or use microphone... (Enter to submit)"
+          className="min-h-[60px] max-h-32 resize-none text-sm flex-1"
+          disabled={disabled || isListening}
+        />
+        <div className="flex flex-col gap-2">
           <Button
-            type="button"
             size="icon"
+            variant={isListening ? 'destructive' : 'outline'}
+            className="h-8 w-8"
+            onClick={isListening ? stopListening : startListening}
+            disabled={disabled}
+            title={isListening ? 'Stop recording' : 'Start recording'}
+          >
+            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </Button>
+          <Button
+            size="icon"
+            className="h-8 w-8"
             onClick={handleSubmit}
-            disabled={!canSubmit}
-            title="Submit (Ctrl+Enter)"
-            className="h-9 w-9"
+            disabled={disabled || !text.trim()}
+            title="Submit"
           >
             <Send className="w-4 h-4" />
           </Button>
         </div>
       </div>
-
-      <p className="text-xs text-muted-foreground/60">
-        Ctrl+Enter to submit · Mic button for speech input
-      </p>
     </div>
   );
 }

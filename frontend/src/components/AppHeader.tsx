@@ -1,64 +1,78 @@
 import React from 'react';
-import { Shield } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
+import { BookOpen, Activity, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import LoginButton from './LoginButton';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetCallerUserProfile } from '../hooks/useQueries';
+import { AppLanguageSelectorCompact } from './AppLanguageSelector';
+import { useTranslation } from '../hooks/useTranslation';
 
-export default function AppHeader() {
-  const { identity } = useInternetIdentity();
-  const isAuthenticated = !!identity;
-  const { data: userProfile } = useGetCallerUserProfile();
+interface AppHeaderProps {
+  asrEngine?: string;
+  isNlpActive?: boolean;
+  isEthicsActive?: boolean;
+}
+
+const ENGINE_LABELS: Record<string, string> = {
+  webSpeech: 'Web Speech',
+  whisper: 'Whisper',
+  deepspeech: 'DeepSpeech',
+};
+
+export default function AppHeader({ asrEngine = 'webSpeech', isNlpActive = false, isEthicsActive = false }: AppHeaderProps) {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
-    <header className="flex items-center justify-between px-4 py-2 bg-navy/90 border-b border-border/50 backdrop-blur-sm z-50">
-      <div className="flex items-center gap-3">
-        <div className="relative">
-          <img
-            src="/assets/generated/olya-logo.dim_256x256.png"
-            alt="Olya"
-            className="w-8 h-8 object-contain"
-            onError={e => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-mono font-bold tracking-widest text-foreground">OLYA</span>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-teal/30 bg-teal/10 text-teal">
-              v2.1
-            </span>
-          </div>
-          <p className="text-[9px] font-mono text-muted-foreground/50 tracking-wider">
-            STRATEGIC DIALOGUE INTELLIGENCE
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="hidden md:flex items-center gap-4 text-[9px] font-mono text-muted-foreground/50">
-          <span className="flex items-center gap-1">
-            <span className="status-dot w-1.5 h-1.5" />
-            ASR ONLINE
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="status-dot w-1.5 h-1.5" />
-            NLP ONLINE
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="status-dot status-dot-amber w-1.5 h-1.5" />
-            ETHICS MONITOR
-          </span>
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-14 items-center px-4 gap-3">
+        {/* Logo */}
+        <div className="flex items-center gap-2 mr-2">
+          <img src="/assets/generated/olya-logo.dim_256x256.png" alt="Olya" className="h-7 w-7 rounded" />
+          <span className="font-bold text-base tracking-tight hidden sm:block">Olya</span>
         </div>
 
-        {isAuthenticated && userProfile && (
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded border border-border/40 bg-muted/20">
-            <Shield size={10} className="text-teal/60" />
-            <span className="text-[10px] font-mono text-foreground/70">{userProfile.name}</span>
-          </div>
-        )}
+        {/* Status indicators */}
+        <div className="hidden sm:flex items-center gap-2">
+          <Badge variant="outline" className="text-xs gap-1 h-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+            {ENGINE_LABELS[asrEngine] || asrEngine}
+          </Badge>
+          <Badge
+            variant={isNlpActive ? 'default' : 'outline'}
+            className="text-xs gap-1 h-6"
+          >
+            <Activity className="w-3 h-3" />
+            {t('header.nlpMonitor')}
+            <span className="ml-1 opacity-70">{isNlpActive ? t('header.active') : t('header.inactive')}</span>
+          </Badge>
+          <Badge
+            variant={isEthicsActive ? 'default' : 'outline'}
+            className="text-xs gap-1 h-6"
+          >
+            <Shield className="w-3 h-3" />
+            {t('header.ethicsMonitor')}
+            <span className="ml-1 opacity-70">{isEthicsActive ? t('header.active') : t('header.inactive')}</span>
+          </Badge>
+        </div>
 
-        <LoginButton />
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Right side actions */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hidden sm:flex items-center gap-1.5 h-8 text-xs"
+            onClick={() => navigate({ to: '/user-manual' })}
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            {t('header.userManual')}
+          </Button>
+          <AppLanguageSelectorCompact />
+          <LoginButton />
+        </div>
       </div>
     </header>
   );
