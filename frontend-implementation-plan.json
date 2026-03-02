@@ -1,28 +1,192 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix New Session button not working in SessionManager",
+  "title": "Enhance Olya App Architecture to Reflect AI/ML Vision Within Platform Constraints",
   "requirements": [
     {
-      "id": "REQ-5",
-      "summary": "Fix the New Session button in SessionManager so that clicking it creates a new session, updates the session list, and selects the newly created session as active",
+      "id": "REQ-4",
+      "summary": "Redesign TranscriptInput ASR area with Whisper-style pipeline visualization including waveform animation, clear engine labeling, and live confidence indicators",
       "acceptanceCriteria": [
-        "Clicking the New Session button invokes the session creation handler without errors.",
-        "A new session appears in the session list immediately after clicking the button.",
-        "The newly created session is automatically selected as the active session.",
-        "The button is not disabled and responds to click events in both authenticated and unauthenticated states (showing appropriate feedback if not logged in).",
-        "No console errors or unhandled promise rejections occur when the button is clicked."
+        "Microphone button shows animated waveform when recording is active",
+        "ASR engine selector is labeled with Whisper, Web Speech, and DeepSpeech options",
+        "A simulated confidence percentage (e.g., 94%) is shown alongside interim transcript text",
+        "Visual design communicates a pipeline stage (input → transcription)"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/SessionManager.tsx",
+          "path": "frontend/src/components/TranscriptInput.tsx",
           "operation": "modify",
-          "description": "Wire the New Session button to trigger session creation by calling the createSession mutation from useQueries hook. The button handler should generate a unique sessionId, create an empty session with initial transcript entries, invalidate the sessions query to refresh the list, and call the onSelectSession callback with the newly created session. Add proper error handling and loading state feedback. Ensure the button is enabled for authenticated users and shows appropriate feedback for unauthenticated users."
+          "description": "Add waveform animation SVG component that renders when isListening is true. Update ASR engine selector label to 'ASR Engine (Whisper / Web Speech / DeepSpeech)' using a <label> element. Add a confidence indicator that displays a simulated percentage (94–98%) alongside interim transcript text when useSpeechRecognition reports interim results. Add visual pipeline stage labeling with an arrow or step indicator to communicate input → transcription flow."
+        },
+        {
+          "path": "frontend/src/hooks/useSpeechRecognition.ts",
+          "operation": "modify",
+          "description": "Extend the hook return type to include a simulated confidence score (0.94–0.98) that updates when interim or final transcripts are received. Generate the confidence value using Math.random scaled to the 94–98 range. Expose this as a confidenceScore property alongside transcript and isListening."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Upgrade SemanticAnalysisPanel and EmotionIntentPanel to represent BERT/RoBERTa-style NLP with model labels, token-level keyword highlights, sentiment bars, and ranked intent probabilities",
+      "acceptanceCriteria": [
+        "Panel header clearly labels the model as 'NLP: BERT / RoBERTa'",
+        "Keywords are highlighted with individual confidence scores",
+        "Sentiment bar spans negative to positive with a numeric score",
+        "Top-3 intents shown with probability bars adding to ~100%",
+        "Emotion panel header labels the model as 'Emotion & Intent: Fine-tuned Transformer'"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/SemanticAnalysisPanel.tsx",
+          "operation": "modify",
+          "description": "Update the panel header to include 'NLP: BERT / RoBERTa' as a subtitle or badge. Modify the keywords display section to render each keyword with a simulated confidence percentage (e.g., 'trust: 92%') using inline badges. Add a horizontal sentiment bar visualization spanning negative (left) to positive (right) with a centered indicator showing the numeric sentiment score (-1.0 to +1.0). Keep the existing emotion and intent distribution displays but add visual probability bars for the top-3 intents that sum to approximately 100%."
+        },
+        {
+          "path": "frontend/src/components/EmotionIntentPanel.tsx",
+          "operation": "modify",
+          "description": "Update the panel header to display 'Emotion & Intent: Fine-tuned Transformer' as a subtitle or model label badge. Ensure the existing confidence bars for emotion and intent are visually distinct and maintain the percentage labels. No other structural changes needed; this requirement focuses on model labeling clarity."
+        },
+        {
+          "path": "frontend/src/utils/nlpSimulator.ts",
+          "operation": "modify",
+          "description": "Extend the SemanticAnalysis return type to include a keywordConfidences map (keyword → confidence score 0.85–0.98) for each extracted keyword. Update the keyword extraction logic to assign a simulated confidence score to each keyword using Math.random scaled to 85–98%. Ensure the sentiment score is returned as a numeric value in the -1.0 to +1.0 range for use in the sentiment bar visualization."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Enhance BeliefStatePanel to represent Knowledge Graph + Bayesian Network with labeled edges, Bayesian confidence percentages, and updated panel label",
+      "acceptanceCriteria": [
+        "Panel header reads 'Belief Modeling: KG + Bayesian Networks'",
+        "Speaker nodes are connected by directional labeled edges",
+        "Each node displays a Bayesian confidence percentage",
+        "Graph updates as new transcript entries are added"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/BeliefStatePanel.tsx",
+          "operation": "modify",
+          "description": "Update the panel header to display 'Belief Modeling: KG + Bayesian Networks' using PanelContainer's title prop. Extend the canvas rendering logic to draw directional labeled edges between speaker nodes with labels such as 'Trust', 'Conflict', 'Agreement' derived from beliefState.speakers array relationships. Add Bayesian confidence percentages (85–95%) to each speaker node label on the canvas, simulating probabilistic belief modeling. Ensure the canvas updates reactively whenever transcriptEntries or beliefState props change."
+        },
+        {
+          "path": "frontend/src/utils/beliefStateSimulator.ts",
+          "operation": "modify",
+          "description": "Extend the BeliefNode type to include a bayesianConfidence property (0.85–0.95 range). Update the simulateBeliefState function to assign a simulated Bayesian confidence score to each speaker node using Math.random scaled appropriately. Add relationship metadata to edges indicating relationship type ('Trust', 'Conflict', 'Agreement') based on sentiment and intent overlap between speaker nodes."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Upgrade StrategyEnginePanel to represent LLM + Reinforcement Learning pipeline with RL reward scores, rank badges, policy update animation, and exploration/exploitation ratio bar",
+      "acceptanceCriteria": [
+        "Panel header reads 'Strategy Engine: LLaMA + RL'",
+        "Each strategy recommendation shows an RL reward score and rank",
+        "A 'Policy Update' animation triggers when strategies are recalculated",
+        "Exploration vs. Exploitation ratio bar is displayed"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/StrategyEnginePanel.tsx",
+          "operation": "modify",
+          "description": "Update the panel header to display 'Strategy Engine: LLaMA + RL' as a subtitle or badge. Modify the strategy recommendation list to include an RL reward score (0.75–0.95) and rank badge (#1, #2, #3) for each strategy. Add a 'Policy Update' animation indicator (e.g., a pulsing icon or brief flash overlay) that triggers via a React state flag when the strategies prop changes. Add a horizontal exploration vs. exploitation ratio bar at the bottom of the panel showing a simulated 70:30 or 60:40 split with labeled segments."
+        },
+        {
+          "path": "frontend/src/utils/llamaRLEngine.ts",
+          "operation": "modify",
+          "description": "Extend the Strategy type to include an rlReward property (0.75–0.95 range) representing the reinforcement learning reward score. Update the recommendStrategies function to compute and assign rlReward values to each strategy based on their current score, normalizing them to the 0.75–0.95 range. Add a simulateExplorationExploitationRatio function that returns a ratio object (e.g., { exploration: 0.3, exploitation: 0.7 }) for display in the panel."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Upgrade EthicsBadge and SafetyQualityPanel to represent dedicated Ethics & Bias Detection module with bias category breakdown, toxicity gauge, and hallucination risk indicator",
+      "acceptanceCriteria": [
+        "Ethics panel/badge is labeled 'Ethics: Bias & Toxicity Detection'",
+        "Bias category breakdown shows gender, racial, and socioeconomic bars",
+        "Toxicity score is displayed as a gauge from 0 to 100",
+        "Hallucination Risk indicator appears using hallucinationGuard output"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/EthicsBadge.tsx",
+          "operation": "modify",
+          "description": "Update the badge label to include 'Ethics: Bias & Toxicity Detection' in the popover header or tooltip. Extend the details section to display a breakdown of bias categories (gender, racial, socioeconomic) with severity bars (0–100 scale) when biasCategories are present in the ethicsResult prop. The visual design should clearly communicate the bias detection module identity."
+        },
+        {
+          "path": "frontend/src/components/SafetyQualityPanel.tsx",
+          "operation": "modify",
+          "description": "Add a panel subtitle or header badge reading 'Ethics: Bias & Toxicity Detection'. Add a toxicity score gauge visualization (0–100 scale) derived from the flagRate metric or a new toxicityScore prop computed from transcript entries. Add a 'Hallucination Risk' indicator row that displays the hallucination confidence score from the hallucinationGuard utility, sourced from the transcript entries. Use color-coded severity (green/yellow/red) for the toxicity gauge and hallucination risk."
+        },
+        {
+          "path": "frontend/src/hooks/useDashboardState.ts",
+          "operation": "modify",
+          "description": "Extend the dashboard state to include a toxicityScore (0–100) computed from ethicsResults across transcript entries. Add a hallucinationRiskScore computed by aggregating hallucinationGuard results for all transcript entries. Export these new metrics so SafetyQualityPanel can consume them via props from the Dashboard page."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Update AppHeader to display full AI pipeline stack as a status ribbon with labeled chips for all 6 pipeline stages showing active/inactive state and model names",
+      "acceptanceCriteria": [
+        "Header shows chips for all 6 pipeline stages",
+        "Each chip displays the model name and active/inactive status",
+        "Chips update state reactively as the session processes input",
+        "Responsive layout collapses chips gracefully on smaller screens"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AppHeader.tsx",
+          "operation": "modify",
+          "description": "Replace the current ASR and NLP/ethics badge section with a new pipeline status ribbon component that renders 6 labeled status chips: 'ASR: Whisper', 'NLP: BERT', 'Emotion & Intent: Transformer', 'Belief: KG + Bayes', 'Strategy: LLaMA + RL', 'Ethics: Bias Detection'. Each chip should show an active/inactive indicator (checkmark or icon) based on whether data is being processed. Accept a pipelineStatus prop (or derive from context) that includes active flags for each stage. Implement responsive layout using Tailwind flex-wrap or grid so chips stack on smaller screens."
         },
         {
           "path": "frontend/src/pages/Dashboard.tsx",
           "operation": "modify",
-          "description": "Ensure the Dashboard component properly handles the onSelectSession callback from SessionManager to set the newly created session as the active session. Verify that the activeSessionId state is updated when a new session is created, triggering UI updates across all dependent panels. Confirm that the session creation flow integrates seamlessly with existing session selection and management logic."
+          "description": "Compute a pipelineStatus object tracking active/inactive state for each of the 6 pipeline stages based on the current dashboard state (e.g., ASR active when isListening, NLP active when transcriptEntries exist, etc.). Pass this pipelineStatus object to AppHeader as a prop so the status chips update reactively as the session processes input."
+        }
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "summary": "Update Dashboard layout to visually communicate sequential AI processing pipeline with logical panel order and flow indicators between sections",
+      "acceptanceCriteria": [
+        "Dashboard panels are ordered to reflect the AI pipeline sequence",
+        "Visual connectors (arrows or step numbers) appear between panel sections",
+        "Layout remains responsive and usable on standard desktop widths",
+        "Each panel section is visually distinct with its pipeline stage label"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Reorder the panel rendering sequence to match the AI pipeline flow: TranscriptInput (ASR) → EmotionIntentPanel → SemanticAnalysisPanel (NLP) → BeliefStatePanel (KG) → StrategyEnginePanel (RL) → SafetyQualityPanel (Ethics). Add visual flow connectors (SVG arrows, step number badges, or divider elements with arrows) between panel sections to communicate data flow. Wrap each panel group in a container with a pipeline stage label or step indicator. Ensure the layout remains responsive using Tailwind grid or flex utilities and maintains usability on standard desktop widths (1280px+)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "summary": "Update UserManual page to document AI pipeline architecture with a dedicated Architecture Overview section describing all 6 pipeline stages using existing Section and InfoBox components",
+      "acceptanceCriteria": [
+        "UserManual has an 'Architecture Overview' section in the table of contents",
+        "Each of the 6 pipeline stages is documented with model name and description",
+        "InfoBox components are used to highlight platform constraint notes",
+        "Section is translatable via the i18n system"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/UserManual.tsx",
+          "operation": "modify",
+          "description": "Add a new Section component with the title 'Architecture Overview' placed early in the document (after Introduction, before Features). Within this section, document each of the 6 AI pipeline stages: ASR (Whisper/Web Speech/DeepSpeech), NLP (BERT/RoBERTa), Emotion & Intent (Fine-tuned Transformers), Belief Modeling (Knowledge Graph + Bayesian Networks), Strategy Engine (LLaMA + RL), and Ethics (Bias & Toxicity Detection). For each stage, include the simulated model name, purpose, and how it processes data within the platform. Use InfoBox components to highlight that all processing is client-side simulation with no external ML API calls. Ensure all section headings and descriptions use the t() translation function for i18n support."
+        },
+        {
+          "path": "frontend/src/i18n/translations.ts",
+          "operation": "modify",
+          "description": "Add translation keys for the new Architecture Overview section content including section title, pipeline stage names (ASR, NLP, Emotion & Intent, Belief Modeling, Strategy Engine, Ethics), their descriptions, and InfoBox constraint notes. Provide translations for all 41 supported languages or at minimum English with placeholders for other languages. Follow the existing translation key naming convention (e.g., 'userManual.architectureOverview.title')."
+        },
+        {
+          "path": "frontend/public/assets/generated/pipeline-diagram.dim_1200x400.png",
+          "operation": "create",
+          "description": "Reference the generated AI pipeline architecture diagram image (pipeline-diagram.dim_1200x400.png) in the Architecture Overview section of the UserManual using an <img> tag with the workspace path frontend/public/assets/generated/pipeline-diagram.dim_1200x400.png. This diagram shows 6 stages (ASR → NLP → Emotion/Intent → Belief Modeling → Strategy Engine → Ethics) connected by arrows in a dark tech aesthetic with teal accent lines on dark navy background. Include descriptive alt text for accessibility."
         }
       ]
     }

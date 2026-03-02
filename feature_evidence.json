@@ -2,11 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-new-session-button-in-sessionmanager-so-that-clicking-it-creates-a-new-session-the-button-must-trigger-the-session-creation-handler-e-g-calling-the-backend-createsession-mutation-via-the-existing-usequeries-hook-update-the-session-list-in-the-ui-and-select-the-newly-created-session-as-the-active-session",
-      "featureTitle": "Fix the New Session button in SessionManager so that clicking it creates a new session. The button must trigger the session creation handler (e.g., calling the backend createSession mutation via the existing useQueries hook), update the session list in the UI, and select the newly created session as the active session.",
-      "files": [
-        "frontend/src/pages/Dashboard.tsx"
-      ],
+      "featureId": "feature-update-the-usermanual-page-frontend-src-pages-usermanual-tsx-to-document-the-ai-pipeline-architecture-add-a-dedicated-architecture-overview-section-describing-each-pipeline-stage-asr-nlp-emotion-intent-belief-modeling-strategy-engine-ethics-with-its-simulated-model-name-purpose-and-how-it-processes-data-within-the-platform-use-existing-section-and-infobox-components",
+      "featureTitle": "Update the UserManual page (frontend/src/pages/UserManual.tsx) to document the AI pipeline architecture: add a dedicated 'Architecture Overview' section describing each pipeline stage (ASR, NLP, Emotion & Intent, Belief Modeling, Strategy Engine, Ethics) with its simulated model name, purpose, and how it processes data within the platform. Use existing Section and InfoBox components.",
+      "files": [],
       "components": [
         "authorization@4.0.0",
         "core-infrastructure@1.0.2",
@@ -16,7 +14,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-5"
+        "REQ-11"
       ],
       "confidence": "high"
     }

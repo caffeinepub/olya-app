@@ -1,34 +1,61 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T17:56:14.180Z",
-  "summary": "The diff implements changes primarily in Dashboard.tsx and useQueries.ts that address REQ-5: fixing the New Session button. The handleNewSession function in Dashboard.tsx calls createSession.mutateAsync, sets the active session, and shows toasts. However, the diff does not show changes to SessionManager.tsx that wire the New Session button to handleNewSession, and the SessionManager.tsx file summary does not mention a New Session button fix.",
+  "generatedAt": "2026-03-02T15:01:47.443Z",
+  "summary": "The diff contains only a modification to project_state.json, which is a metadata/state tracking file. None of the actual frontend component files required by the build request have been created or modified. All 8 requirements (REQ-4 through REQ-11) are entirely unimplemented — no source code changes were made to TranscriptInput, SemanticAnalysisPanel, EmotionIntentPanel, BeliefStatePanel, StrategyEnginePanel, EthicsBadge, SafetyQualityPanel, AppHeader, Dashboard, or UserManual.tsx.",
   "missing_requirements": [
     {
-      "id": "REQ-5",
-      "requirement": "The New Session button in SessionManager must be wired to the session creation handler so clicking it invokes handleNewSession, updates the session list, and selects the newly created session as the active session.",
-      "reason": "The diff shows handleNewSession is implemented in Dashboard.tsx and passed down, but the SessionManager.tsx file summary only mentions delete button fixes and session cards with no mention of a New Session button being connected to the handler. Without seeing SessionManager.tsx changes, the button wiring cannot be confirmed.",
-      "evidence": [
-        "frontend/src/components/SessionManager.tsx",
-        "frontend/src/pages/Dashboard.tsx"
-      ]
-    }
-  ],
-  "hallucinated_features": [
+      "id": "REQ-4",
+      "requirement": "Redesign the ASR input area in TranscriptInput to show waveform animation, label ASR engine selector as 'ASR Engine (Whisper / Web Speech / DeepSpeech)', and display live transcription confidence indicator.",
+      "reason": "No changes to TranscriptInput or any frontend component file are present in the diff.",
+      "evidence": []
+    },
     {
-      "description": "StrategyEnginePanel changes unrelated to New Session button fix",
-      "reason": "frontend/src/components/StrategyEnginePanel.tsx was modified with strategy generation logic and RLScoreBadge, which is not requested in REQ-5 and is unrelated to fixing the New Session button.",
-      "evidence": [
-        "frontend/src/components/StrategyEnginePanel.tsx"
-      ]
+      "id": "REQ-5",
+      "requirement": "Upgrade SemanticAnalysisPanel and EmotionIntentPanel to display BERT/RoBERTa model labels, token-level keyword highlights with confidence scores, sentiment bar, and top-3 intent probability bars.",
+      "reason": "No changes to SemanticAnalysisPanel, EmotionIntentPanel, or any frontend component file are present in the diff.",
+      "evidence": []
+    },
+    {
+      "id": "REQ-6",
+      "requirement": "Enhance BeliefStatePanel to show 'Belief Modeling: KG + Bayesian Networks' label, speaker nodes with labeled edges, Bayesian confidence percentages, using existing canvas-based visualization.",
+      "reason": "No changes to BeliefStatePanel or any frontend component file are present in the diff.",
+      "evidence": []
+    },
+    {
+      "id": "REQ-7",
+      "requirement": "Upgrade StrategyEnginePanel to show 'Strategy Engine: LLaMA + RL' label, RL reward scores with rank badges, Policy Update animation, and Exploration vs. Exploitation ratio bar.",
+      "reason": "No changes to StrategyEnginePanel or any frontend component file are present in the diff.",
+      "evidence": []
+    },
+    {
+      "id": "REQ-8",
+      "requirement": "Upgrade EthicsBadge and SafetyQualityPanel to show 'Ethics: Bias & Toxicity Detection' label, bias category breakdown bars, toxicity score gauge, and Hallucination Risk indicator.",
+      "reason": "No changes to EthicsBadge, SafetyQualityPanel, or any frontend component file are present in the diff.",
+      "evidence": []
+    },
+    {
+      "id": "REQ-9",
+      "requirement": "Update AppHeader to display a full AI pipeline status ribbon with chips for all 6 stages (ASR, NLP, Emotion & Intent, Belief Modeling, Strategy Engine, Ethics) showing model names and active/inactive state.",
+      "reason": "No changes to AppHeader or any frontend component file are present in the diff.",
+      "evidence": []
+    },
+    {
+      "id": "REQ-10",
+      "requirement": "Update Dashboard layout to order panels as the AI pipeline sequence with visual flow connectors (arrows or step numbers) between panel sections.",
+      "reason": "No changes to Dashboard or any frontend layout file are present in the diff.",
+      "evidence": []
+    },
+    {
+      "id": "REQ-11",
+      "requirement": "Update UserManual page to add an 'Architecture Overview' section documenting all 6 pipeline stages with model names, descriptions, InfoBox components for constraints, and i18n support.",
+      "reason": "No changes to frontend/src/pages/UserManual.tsx or any frontend page file are present in the diff.",
+      "evidence": []
     }
   ],
-  "confidence": 0.6,
+  "hallucinated_features": [],
+  "confidence": 0.98,
   "changed_files": [
-    "frontend-file-summaries.txt",
-    "frontend/src/components/StrategyEnginePanel.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/Dashboard.tsx",
     "project_state.json"
   ]
 }

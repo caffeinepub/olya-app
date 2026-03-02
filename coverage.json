@@ -1,37 +1,106 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T17:56:14.184Z",
+  "generatedAt": "2026-03-02T15:01:47.447Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
+    "total": 8,
     "implemented": 1,
     "items": [
       {
-        "id": "REQ-5",
-        "summary": "Fix the New Session button in SessionManager so that clicking it creates a new session. The button must trigger the session creation handler (e.g., calling the backend createSession mutation via the existing useQueries hook), update the session list in the UI, and select the newly created session as the active session.",
-        "status": "implemented",
+        "id": "REQ-10",
+        "summary": "Update the Dashboard layout to visually communicate a sequential AI processing pipeline: arrange panels in a logical flow order — Transcript Input (ASR) → Emotion & Intent → Semantic / NLP → Belief State (KG) → Strategy Engine (RL) → Ethics / Safety — with subtle connecting flow indicators (arrows or step numbers) between panel sections to communicate data flow.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/SessionManager.tsx",
           "frontend/src/pages/Dashboard.tsx"
         ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-11",
+        "summary": "Update the UserManual page (frontend/src/pages/UserManual.tsx) to document the AI pipeline architecture: add a dedicated 'Architecture Overview' section describing each pipeline stage (ASR, NLP, Emotion & Intent, Belief Modeling, Strategy Engine, Ethics) with its simulated model name, purpose, and how it processes data within the platform. Use existing Section and InfoBox components.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/UserManual.tsx",
+          "frontend/src/i18n/translations.ts",
+          "frontend/public/assets/generated/pipeline-diagram.dim_1200x400.png"
+        ],
         "matchedFiles": [
-          "frontend/src/pages/Dashboard.tsx"
+          "frontend/public/assets/generated/pipeline-diagram.dim_1200x400.png"
         ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Redesign the ASR input area in TranscriptInput to visually represent a Whisper-style speech-to-text pipeline: show a waveform animation when the microphone is active, label the ASR engine selector clearly as 'ASR Engine (Whisper / Web Speech / DeepSpeech)', and display a live transcription confidence indicator alongside the interim transcript text.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/TranscriptInput.tsx",
+          "frontend/src/hooks/useSpeechRecognition.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Upgrade the SemanticAnalysisPanel and EmotionIntentPanel to visually represent BERT/RoBERTa-style NLP processing: display a 'Model' label (e.g., 'NLP: BERT/RoBERTa'), show token-level keyword highlights with confidence scores, render sentiment as a signed score with directional bar (negative to positive), and display intent classification with top-3 ranked intents and probability bars.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/SemanticAnalysisPanel.tsx",
+          "frontend/src/components/EmotionIntentPanel.tsx",
+          "frontend/src/utils/nlpSimulator.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Enhance the BeliefStatePanel to visually represent a Knowledge Graph + Bayesian Network: render speaker nodes as graph nodes connected by labeled edges (e.g., 'Trust', 'Conflict', 'Agreement'), display Bayesian confidence percentages on each node, and show a 'Belief Modeling: KG + Bayesian Networks' panel label. Use the existing canvas-based visualization as the foundation.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/BeliefStatePanel.tsx",
+          "frontend/src/utils/beliefStateSimulator.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Upgrade the StrategyEnginePanel to visually represent an LLM + Reinforcement Learning pipeline: add a 'Strategy Engine: LLaMA + RL' panel label, display each recommended strategy with an RL reward score and rank badge, show a 'Policy Update' indicator that animates briefly when new strategies are computed, and include a simulated 'Exploration vs. Exploitation' ratio bar.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/StrategyEnginePanel.tsx",
+          "frontend/src/utils/llamaRLEngine.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-8",
+        "summary": "Upgrade the EthicsBadge and SafetyQualityPanel to visually represent a dedicated Ethics & Bias Detection module: add an 'Ethics: Bias & Toxicity Detection' label, display a breakdown of detected bias categories (gender, racial, socioeconomic) with severity bars, show a toxicity score gauge (0–100), and add a 'Hallucination Risk' indicator sourced from the existing hallucinationGuard utility.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/EthicsBadge.tsx",
+          "frontend/src/components/SafetyQualityPanel.tsx",
+          "frontend/src/hooks/useDashboardState.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-9",
+        "summary": "Update the AppHeader to display the full AI pipeline stack as a status ribbon: show labeled status chips for ASR, NLP, Emotion & Intent, Belief Modeling, Strategy Engine, and Ethics — each chip showing active/inactive state with the model name (e.g., 'ASR: Whisper ✓', 'NLP: BERT ✓'). Replace the current ASR and NLP/Ethics badges with this expanded pipeline ribbon.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/AppHeader.tsx",
+          "frontend/src/pages/Dashboard.tsx"
+        ],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/StrategyEnginePanel.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/Dashboard.tsx",
+    "frontend/public/assets/generated/pipeline-diagram.dim_1200x400.png",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,27 +1,20 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
-  "summary": "App with multi-language support: users can download the manual in different languages, and validation prompts and instructions display in the user-selected language.",
-  "architectural_notes": [],
-  "known_issues": [
-    "Trash/delete icon does not appear on session cards; sessions cannot be deleted",
-    "New Session button is not functional"
+  "projectStateVersion": 5,
+  "summary": "Negotiation coaching app with multi-language support. Architecture is being updated to reflect an AI/ML-inspired vision: UI/UX will represent ASR (speech-to-text input), NLP (BERT/RoBERTa-style analysis display), Emotion & Intent detection panels, Belief Modeling visualization, Strategy Engine recommendations, and Ethics/bias indicators — all within the Internet Computer (React + TypeScript + Motoko) platform constraints, connecting to external APIs where possible.",
+  "architectural_notes": [
+    "AI/ML components (ASR, NLP, Emotion/Intent, Belief Modeling, Strategy Engine, Ethics) are represented as UI panels; actual ML inference is either mocked or proxied to external APIs — not run natively on the Internet Computer.",
+    "Frontend stack: React + TypeScript. Backend: Motoko on Internet Computer. External ML APIs can be called from the frontend via fetch."
   ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- AI pipeline architecture diagram showing 6 stages (ASR → NLP → Emotion/Intent → Belief Modeling → Strategy Engine → Ethics) connected by arrows, dark tech aesthetic with teal accent lines on dark navy background (pipeline-diagram.dim_1200x400.png)",
   "existing_features": [
     {
-      "id": "feature-fix-the-session-card-in-sessionmanager-so-that-a-trash-delete-icon-button-is-visibly-rendered-on-the-right-side-of-each-session-card-the-button-must-be-always-visible-or-visible-on-hover-and-must-call-the-existing-delete-session-handler-when-clicked-allowing-users-to-delete-sessions",
-      "title": "Fix the session card in SessionManager so that a trash/delete icon button is visibly rendered on the right side of each session card. The button must be always visible (or visible on hover) and must call the existing delete session handler when clicked, allowing users to delete sessions.",
+      "id": "feature-update-the-usermanual-page-frontend-src-pages-usermanual-tsx-to-document-the-ai-pipeline-architecture-add-a-dedicated-architecture-overview-section-describing-each-pipeline-stage-asr-nlp-emotion-intent-belief-modeling-strategy-engine-ethics-with-its-simulated-model-name-purpose-and-how-it-processes-data-within-the-platform-use-existing-section-and-infobox-components",
+      "title": "Update the UserManual page (frontend/src/pages/UserManual.tsx) to document the AI pipeline architecture: add a dedicated 'Architecture Overview' section describing each pipeline stage (ASR, NLP, Emotion & Intent, Belief Modeling, Strategy Engine, Ethics) with its simulated model name, purpose, and how it processes data within the platform. Use existing Section and InfoBox components.",
       "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-the-new-session-button-in-sessionmanager-so-that-clicking-it-creates-a-new-session-the-button-must-trigger-the-session-creation-handler-e-g-calling-the-backend-createsession-mutation-via-the-existing-usequeries-hook-update-the-session-list-in-the-ui-and-select-the-newly-created-session-as-the-active-session",
-      "title": "Fix the New Session button in SessionManager so that clicking it creates a new session. The button must trigger the session creation handler (e.g., calling the backend createSession mutation via the existing useQueries hook), update the session list in the UI, and select the newly created session as the active session.",
-      "reqIds": [
-        "REQ-5"
+        "REQ-11"
       ],
       "version": 1
     }
@@ -65,17 +58,98 @@
     },
     {
       "id": "AR-6",
-      "summary": "Fix missing trash/delete icon on session cards so users can delete sessions",
+      "summary": "Add ASR (Whisper-style) speech-to-text input UI: a microphone button and transcription display area on the session/coaching screen so users can speak their negotiation input.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-7",
-      "summary": "Fix the New Session button which is not working",
+      "summary": "Add NLP analysis panel (BERT/RoBERTa-style) that displays detected keywords, sentiment, and linguistic analysis of the user's negotiation input.",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Add Emotion & Intent display panel showing detected emotion (e.g., confident, anxious, aggressive) and intent classification for each user message or session turn.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Add Belief Modeling visualization (Knowledge Graph + Bayesian-style) showing inferred beliefs, assumptions, and confidence levels about negotiation parties.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Add Strategy Engine recommendation panel (LLM + RL-style) that suggests negotiation tactics and next steps based on session context.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Add Ethics/bias indicator panel that flags potentially biased, toxic, or ethically problematic language in the negotiation session.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Redesign the ASR input area in TranscriptInput to visually represent a Whisper-style speech-to-text pipeline: show a waveform animation when the microphone is active, label the ASR engine selector clearly as 'ASR Engine (Whisper / Web Speech / DeepSpeech)', and display a live transcription confidence indicator alongside the interim transcript text.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Upgrade the SemanticAnalysisPanel and EmotionIntentPanel to visually represent BERT/RoBERTa-style NLP processing: display a 'Model' label (e.g., 'NLP: BERT/RoBERTa'), show token-level keyword highlights with confidence scores, render sentiment as a signed score with directional bar (negative to positive), and display intent classification with top-3 ranked intents and probability bars.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Enhance the BeliefStatePanel to visually represent a Knowledge Graph + Bayesian Network: render speaker nodes as graph nodes connected by labeled edges (e.g., 'Trust', 'Conflict', 'Agreement'), display Bayesian confidence percentages on each node, and show a 'Belief Modeling: KG + Bayesian Networks' panel label. Use the existing canvas-based visualization as the foundation.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Upgrade the StrategyEnginePanel to visually represent an LLM + Reinforcement Learning pipeline: add a 'Strategy Engine: LLaMA + RL' panel label, display each recommended strategy with an RL reward score and rank badge, show a 'Policy Update' indicator that animates briefly when new strategies are computed, and include a simulated 'Exploration vs. Exploitation' ratio bar.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Upgrade the EthicsBadge and SafetyQualityPanel to visually represent a dedicated Ethics & Bias Detection module: add an 'Ethics: Bias & Toxicity Detection' label, display a breakdown of detected bias categories (gender, racial, socioeconomic) with severity bars, show a toxicity score gauge (0–100), and add a 'Hallucination Risk' indicator sourced from the existing hallucinationGuard utility.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Update the AppHeader to display the full AI pipeline stack as a status ribbon: show labeled status chips for ASR, NLP, Emotion & Intent, Belief Modeling, Strategy Engine, and Ethics — each chip showing active/inactive state with the model name (e.g., 'ASR: Whisper ✓', 'NLP: BERT ✓'). Replace the current ASR and NLP/Ethics badges with this expanded pipeline ribbon.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Update the Dashboard layout to visually communicate a sequential AI processing pipeline: arrange panels in a logical flow order — Transcript Input (ASR) → Emotion & Intent → Semantic / NLP → Belief State (KG) → Strategy Engine (RL) → Ethics / Safety — with subtle connecting flow indicators (arrows or step numbers) between panel sections to communicate data flow.",
+      "reqIds": [
+        "REQ-10"
+      ],
       "status": "pending"
     }
   ],
+  "gameProjectType": "none",
   "projectName": "Olya Negotiation Coach",
   "clarification_mode": "instant",
   "clarification_rounds": 0

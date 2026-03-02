@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
-import {
+import type {
   ExtendedConversationSession,
   TranscriptEntry,
   ConversationPattern,
   UserProfile,
-  UserRole,
 } from '../backend';
+import { UserRole } from '../backend';
 
 // ─── User Profile ────────────────────────────────────────────────────────────
 
@@ -50,7 +50,8 @@ export function useSaveCallerUserProfile() {
 
 /**
  * Ensures the authenticated caller has the #user role assigned.
- * assignCallerUserRole is idempotent — calling it multiple times is safe.
+ * Must be called after login so that backend operations (createSession, etc.)
+ * succeed. assignCallerUserRole is idempotent — calling it multiple times is safe.
  */
 export function useEnsureUserRole() {
   const { actor } = useActor();
@@ -61,7 +62,7 @@ export function useEnsureUserRole() {
       if (!actor) throw new Error('Actor not available');
       if (!identity) throw new Error('Not authenticated');
       const principal = identity.getPrincipal();
-      await actor.assignCallerUserRole(principal as never, UserRole.user);
+      await actor.assignCallerUserRole(principal, UserRole.user);
     },
     // Silently ignore errors — the user may already have a role or be admin
     onError: () => {},
@@ -71,7 +72,7 @@ export function useEnsureUserRole() {
 // ─── Sessions ────────────────────────────────────────────────────────────────
 
 export function useGetSessions() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching } = useActor();
 
   return useQuery<ExtendedConversationSession[]>({
     queryKey: ['sessions'],
@@ -79,18 +80,16 @@ export function useGetSessions() {
       if (!actor) return [];
       return actor.getSessionsByTimestamp();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !isFetching,
   });
 }
 
 export function useCreateSession() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor } = useActor();
   const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
-  const isReady = !!actor && !actorFetching && !!identity;
-
-  const mutation = useMutation({
+  return useMutation({
     mutationFn: async ({
       sessionId,
       rawTranscript,
@@ -103,10 +102,13 @@ export function useCreateSession() {
       if (!actor) throw new Error('Actor not available');
       if (!identity) throw new Error('Not authenticated');
 
-      // Ensure the caller has the #user role (idempotent)
+      // Ensure the caller has the #user role before attempting to create a session.
+      // assignCallerUserRole is idempotent — safe to call every time.
+      // We intentionally swallow errors here because the user may already have
+      // a higher role (admin) or the role may have been assigned previously.
       try {
         const principal = identity.getPrincipal();
-        await actor.assignCallerUserRole(principal as never, UserRole.user);
+        await actor.assignCallerUserRole(principal, UserRole.user);
       } catch {
         // Role may already be assigned or caller is admin — proceed anyway
       }
@@ -117,8 +119,6 @@ export function useCreateSession() {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
     },
   });
-
-  return { ...mutation, isReady };
 }
 
 export function useUpdateSession() {
@@ -140,8 +140,9 @@ export function useUpdateSession() {
       if (!actor) throw new Error('Actor not available');
       return actor.updateSession(sessionId, rawTranscript, transcriptEntries, patterns);
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['session', variables.sessionId] });
     },
   });
 }
@@ -161,35 +162,31 @@ export function useDeleteSession() {
   });
 }
 
+export function useGetAggregateData() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery({
+    queryKey: ['aggregateData'],
+    queryFn: async () => {
+      if (!actor) return { patterns: [], biases: [], ethicalViolations: [] };
+      return actor.getAggregateData();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+/**
+ * Strategy recommendations are stored client-side only.
+ * The mutation accepts a plain strategy string (as produced by the strategy simulator)
+ * and resolves immediately without a backend call.
+ */
 export function useAddStrategyRecommendation() {
-  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      sessionId,
-      strategy,
-    }: {
-      sessionId: string;
-      strategy: string;
-    }) => {
-      if (!actor) throw new Error('Actor not available');
-      // Fetch current session and append the strategy as a ConversationPattern
-      const session = await actor.getSession(sessionId);
-      const newPattern: ConversationPattern = {
-        speakerRole: 'Unknown',
-        intent: strategy,
-        emotion: 'neutral',
-        topic: 'strategy',
-        occurrence: BigInt(1),
-      };
-      const updatedPatterns = [...session.patterns, newPattern];
-      return actor.updateSession(
-        sessionId,
-        session.rawTranscript,
-        session.transcriptEntries,
-        updatedPatterns
-      );
+    mutationFn: async (_data: { sessionId: string; strategy: string }) => {
+      // Strategy recommendations are managed client-side in dashboard state
+      return Promise.resolve();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
