@@ -30,7 +30,7 @@ function getSessionPreview(session: ExtendedConversationSession): string {
   if (session.rawTranscript && session.rawTranscript.trim().length > 0) {
     return (
       session.rawTranscript.slice(0, 60) +
-      (session.rawTranscript.length > 60 ? "…" : "")
+      (session.rawTranscript.length > 60 ? "\u2026" : "")
     );
   }
   return "Empty session";
@@ -48,6 +48,7 @@ export default function SessionManager({
 
   const handleDelete = async (e: React.MouseEvent, sessionId: string) => {
     e.stopPropagation();
+    e.preventDefault();
     setDeletingId(sessionId);
     try {
       await onDeleteSession(sessionId);
@@ -93,64 +94,71 @@ export default function SessionManager({
             const isActive = session.sessionId === activeSessionId;
             const isDeleting = deletingId === session.sessionId;
             return (
-              <button
-                type="button"
-                key={session.sessionId}
-                onClick={() => onSessionSelect(session.sessionId)}
-                className={`group relative w-full text-left rounded-lg p-2.5 cursor-pointer transition-all duration-150 ${
-                  isActive
-                    ? "bg-primary/15 border border-primary/30"
-                    : "hover:bg-muted/50 border border-transparent"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-1">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <MessageSquare
-                        className={`h-3 w-3 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground"}`}
-                      />
-                      <span
-                        className={`text-xs font-medium truncate ${isActive ? "text-primary" : "text-foreground"}`}
-                      >
-                        Session {session.sessionId.slice(-6)}
-                      </span>
+              // Outer wrapper: relative container for positioning delete button
+              <div key={session.sessionId} className="relative group">
+                {/* Main session select button */}
+                <button
+                  type="button"
+                  onClick={() => onSessionSelect(session.sessionId)}
+                  className={`w-full text-left rounded-lg p-2.5 pr-8 cursor-pointer transition-all duration-150 ${
+                    isActive
+                      ? "bg-primary/15 border border-primary/30"
+                      : "hover:bg-muted/50 border border-transparent"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-1">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <MessageSquare
+                          className={`h-3 w-3 flex-shrink-0 ${
+                            isActive ? "text-primary" : "text-muted-foreground"
+                          }`}
+                        />
+                        <span
+                          className={`text-xs font-medium truncate ${
+                            isActive ? "text-primary" : "text-foreground"
+                          }`}
+                        >
+                          Session {session.sessionId.slice(-6)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate leading-relaxed">
+                        {getSessionPreview(session)}
+                      </p>
+                      <div className="flex items-center gap-1 mt-1.5">
+                        <Clock className="h-2.5 w-2.5 text-muted-foreground/60" />
+                        <span className="text-[10px] text-muted-foreground/60">
+                          {formatTimestamp(session.timestamp)}
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground truncate leading-relaxed">
-                      {getSessionPreview(session)}
-                    </p>
-                    <div className="flex items-center gap-1 mt-1.5">
-                      <Clock className="h-2.5 w-2.5 text-muted-foreground/60" />
-                      <span className="text-[10px] text-muted-foreground/60">
-                        {formatTimestamp(session.timestamp)}
-                      </span>
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      {session.patterns.length > 0 && (
+                        <Badge
+                          variant="secondary"
+                          className="text-[9px] px-1 py-0 h-4"
+                        >
+                          {session.patterns.length}p
+                        </Badge>
+                      )}
+                      {session.ethicalViolations.length > 0 && (
+                        <Badge
+                          variant="destructive"
+                          className="text-[9px] px-1 py-0 h-4"
+                        >
+                          {session.ethicalViolations.length}v
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    {session.patterns.length > 0 && (
-                      <Badge
-                        variant="secondary"
-                        className="text-[9px] px-1 py-0 h-4"
-                      >
-                        {session.patterns.length}p
-                      </Badge>
-                    )}
-                    {session.ethicalViolations.length > 0 && (
-                      <Badge
-                        variant="destructive"
-                        className="text-[9px] px-1 py-0 h-4"
-                      >
-                        {session.ethicalViolations.length}v
-                      </Badge>
-                    )}
-                  </div>
-                </div>
+                </button>
 
-                {/* Delete button */}
+                {/* Delete button — absolute sibling, not nested inside the session button */}
                 <button
                   type="button"
                   onClick={(e) => handleDelete(e, session.sessionId)}
                   disabled={isDeleting}
-                  className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive"
+                  className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive z-10"
                   title="Delete session"
                 >
                   {isDeleting ? (
@@ -159,7 +167,7 @@ export default function SessionManager({
                     <Trash2 className="h-3 w-3" />
                   )}
                 </button>
-              </button>
+              </div>
             );
           })}
         </div>

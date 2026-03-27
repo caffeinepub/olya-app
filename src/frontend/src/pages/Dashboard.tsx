@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Plus, Printer } from "lucide-react";
+import { Download, MessageSquare, Plus, Printer } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import type { ExtendedConversationSession } from "../backend";
@@ -25,6 +25,7 @@ import {
   useUpdateSession,
 } from "../hooks/useQueries";
 import { useTranslation } from "../hooks/useTranslation";
+import { downloadAnalysisAsPDF } from "../utils/downloadPDF";
 
 export default function Dashboard() {
   const { identity } = useInternetIdentity();
@@ -34,6 +35,7 @@ export default function Dashboard() {
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [asrEngine, setAsrEngine] = useState<string>("webSpeech");
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
 
   const {
     transcriptEntries,
@@ -50,7 +52,7 @@ export default function Dashboard() {
   const updateSession = useUpdateSession();
   const deleteSession = useDeleteSession();
 
-  void sessionsLoading; // SessionManager handles its own loading state
+  void sessionsLoading;
 
   const handleNewSession = async () => {
     if (!isAuthenticated) {
@@ -70,7 +72,10 @@ export default function Dashboard() {
       if (message.includes("Unauthorized") || message.includes("Only users")) {
         toast.error("Please log in to create a new session.");
       } else {
-        toast.error("Failed to create session. Please try again.");
+        // Create a local-only session as fallback so the UI still works
+        setActiveSessionId(sessionId);
+        clearEntries();
+        toast.warning("Session created locally. Some features may be limited.");
       }
     }
   };
@@ -82,6 +87,7 @@ export default function Dashboard() {
         setActiveSessionId(null);
         clearEntries();
       }
+      toast.success("Session deleted.");
     } catch (err) {
       console.error("Failed to delete session:", err);
       toast.error("Failed to delete session. Please try again.");
@@ -129,6 +135,25 @@ export default function Dashboard() {
       } catch (err) {
         console.error("Failed to update session:", err);
       }
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!activeSessionId || transcriptEntries.length === 0) return;
+    setIsDownloadingPDF(true);
+    try {
+      await downloadAnalysisAsPDF(
+        activeSessionId,
+        transcriptEntries,
+        beliefState,
+        latestEntry,
+      );
+      toast.success("PDF downloaded successfully.");
+    } catch (err) {
+      console.error("PDF download failed:", err);
+      toast.error("Failed to generate PDF. Please try again.");
+    } finally {
+      setIsDownloadingPDF(false);
     }
   };
 
@@ -219,8 +244,8 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="p-4 space-y-4 max-w-7xl mx-auto">
-              {/* Session Summary Bar + Print button */}
-              <div className="flex items-center gap-3 flex-wrap">
+              {/* Session Summary Bar + action buttons */}
+              <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex-1 min-w-0">
                   <SessionSummaryBar
                     entries={transcriptEntries}
@@ -228,16 +253,33 @@ export default function Dashboard() {
                   />
                 </div>
                 {canPrint && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="no-print gap-1.5 shrink-0"
-                    onClick={() => window.print()}
-                    data-ocid="analysis.primary_button"
-                  >
-                    <Printer className="w-4 h-4" />
-                    Print Analysis
-                  </Button>
+                  <div className="no-print flex items-center gap-2 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => window.print()}
+                      data-ocid="analysis.primary_button"
+                    >
+                      <Printer className="w-4 h-4" />
+                      Print
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={handleDownloadPDF}
+                      disabled={isDownloadingPDF}
+                      data-ocid="analysis.secondary_button"
+                    >
+                      {isDownloadingPDF ? (
+                        <span className="h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4" />
+                      )}
+                      Download PDF
+                    </Button>
+                  </div>
                 )}
               </div>
 

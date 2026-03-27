@@ -251,7 +251,6 @@ export default function PrintAnalysisView({
             </thead>
             <tbody>
               {entries.map((entry, rowIdx) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: transcript entries are positionally stable in a print view
                 <tr
                   key={entry.timestamp}
                   style={{ background: rowIdx % 2 === 0 ? "#fff" : "#fafafa" }}
@@ -544,7 +543,6 @@ export default function PrintAnalysisView({
         ) : (
           <ol style={{ paddingLeft: "18px", fontSize: "9pt" }}>
             {allStrategies.map((s, idx) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: strategies are positionally stable in a print report
               <li key={`${s.strategy}-${idx}`} style={{ marginBottom: "6px" }}>
                 <strong>{s.strategy}</strong>
                 {s.rationale ? ` — ${s.rationale}` : ""}
