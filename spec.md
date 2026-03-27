@@ -1,17 +1,30 @@
-# Specification
+# Olya App v4.0
 
-## Summary
-**Goal:** Enhance the Olya Negotiation Coach frontend to visually reflect a full AI/ML pipeline architecture across all major panels and the app header, using simulated data with realistic model labels and metrics.
+## Current State
+The app is a multilingual AI-Driven Strategic Dialogue Intelligence System with:
+- Dashboard with session management, transcript input, and 6 analysis panels (Emotion/Intent, Belief State, Semantic Analysis, Pattern Predictions, Safety/Quality, Strategy Engine)
+- SessionSummaryBar showing health score, exchanges, dominant emotion, top strategy, and bias incidents
+- AppHeader with ASR engine badge, NLP/Ethics status, API mode, manual link, theme, language selector, and login
+- Version number not explicitly displayed in the UI
 
-**Planned changes:**
-- Update `TranscriptInput` / ASR area: animated waveform when mic is active, ASR engine selector labeled "ASR Engine (Whisper / Web Speech / DeepSpeech)", and a simulated transcription confidence indicator alongside interim transcript text
-- Upgrade `SemanticAnalysisPanel`: add "NLP: BERT / RoBERTa" model label, keyword highlights with confidence scores, signed sentiment bar (negative to positive with numeric score), and top-3 intent probability bars
-- Upgrade `EmotionIntentPanel`: add "Emotion & Intent: Fine-tuned Transformer" label, top-3 ranked intents with probability bars
-- Enhance `BeliefStatePanel`: add "Belief Modeling: KG + Bayesian Networks" label, directional labeled edges between speaker nodes (Trust, Conflict, Agreement), Bayesian confidence percentages on each node
-- Upgrade `StrategyEnginePanel`: add "Strategy Engine: LLaMA + RL" label, RL reward score and rank badge per strategy, animated "Policy Update" indicator on recalculation, and Exploration vs. Exploitation ratio bar
-- Upgrade `EthicsBadge` / `SafetyQualityPanel`: add "Ethics: Bias & Toxicity Detection" label, bias category breakdown bars (gender, racial, socioeconomic), toxicity score gauge (0–100), and Hallucination Risk indicator from `hallucinationGuard`
-- Update `AppHeader`: replace current badges with a full pipeline status ribbon showing chips for all 6 stages (ASR, NLP, Emotion & Intent, Belief Modeling, Strategy Engine, Ethics) with model name and active/inactive state; responsive collapsing on smaller screens
-- Update Dashboard layout: reorder panels to reflect pipeline sequence (Transcript Input → Emotion & Intent → Semantic/NLP → Belief State → Strategy Engine → Ethics/Safety) with visual flow connectors (arrows or step numbers) between sections
-- Update `UserManual` page: add "Architecture Overview" section documenting all 6 pipeline stages with model names, descriptions, and platform constraint notes using existing `Section` and `InfoBox` components, integrated with the i18n system
+## Requested Changes (Diff)
 
-**User-visible outcome:** Users see the full AI pipeline represented visually across the app — from the ASR input stage through NLP, emotion/intent, belief modeling, strategy generation, and ethics — with model labels, confidence scores, flow indicators, and a header ribbon communicating each active pipeline stage.
+### Add
+- **Print Analysis button** in the Dashboard when an active session has transcript entries
+- **PrintAnalysisView component** — a print-optimized layout that renders all analysis data (session summary, transcript entries, emotion/intent results, belief state, semantic analysis, pattern predictions, safety/quality, strategy engine recommendations)
+- **Print CSS** — `@media print` styles to hide the sidebar, header, and controls; show only the print view
+- **Version 4.0 label** in the AppHeader (e.g., a small badge or text next to the app name)
+
+### Modify
+- `Dashboard.tsx` — add a "Print Analysis" button in the toolbar above or below the SessionSummaryBar; clicking it triggers `window.print()` after making the PrintAnalysisView visible
+- `AppHeader.tsx` — add "v4.0" text/badge next to the Olya logo/name
+- `index.css` — add `@media print` rules to hide non-printable UI and show the print view
+
+### Remove
+- Nothing removed
+
+## Implementation Plan
+1. Create `src/frontend/src/components/PrintAnalysisView.tsx` — full analysis report layout (header with session metadata, summary stats, transcript log, all panel data)
+2. Update `Dashboard.tsx` — import PrintAnalysisView, add Print button (Printer icon), pass all analysis data to PrintAnalysisView via a hidden `print-only` div
+3. Update `AppHeader.tsx` — add v4.0 badge next to logo
+4. Update `index.css` — add `@media print` CSS to hide `.no-print` elements and show `.print-only` elements
