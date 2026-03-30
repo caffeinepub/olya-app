@@ -14,85 +14,8 @@ export async function downloadAnalysisAsPDF(
   beliefState: BeliefState,
   latestEntry: TranscriptEntry | null,
 ): Promise<void> {
-  const { default: jsPDF } = await import("jspdf");
-
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const pageW = doc.internal.pageSize.getWidth();
-  const margin = 14;
-  const contentW = pageW - margin * 2;
-  let y = margin;
-
-  const LINE_H = 6;
-  const SECTION_GAP = 8;
-
-  function checkPage(needed = LINE_H) {
-    if (y + needed > doc.internal.pageSize.getHeight() - margin) {
-      doc.addPage();
-      y = margin;
-    }
-  }
-
-  function heading1(text: string) {
-    checkPage(12);
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text(text, margin, y);
-    y += 8;
-    doc.setLineWidth(0.5);
-    doc.line(margin, y, margin + contentW, y);
-    y += 4;
-  }
-
-  function heading2(text: string) {
-    checkPage(10);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text(text, margin, y);
-    y += 7;
-    doc.setLineWidth(0.2);
-    doc.setDrawColor(180, 180, 180);
-    doc.line(margin, y, margin + contentW, y);
-    doc.setDrawColor(0, 0, 0);
-    y += 4;
-  }
-
-  function row(label: string, value: string) {
-    checkPage(LINE_H);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    doc.text(label, margin, y);
-    doc.setFont("helvetica", "normal");
-    doc.text(value, margin + 60, y);
-    y += LINE_H;
-  }
-
-  function bodyText(text: string) {
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    const lines = doc.splitTextToSize(text, contentW);
-    for (const line of lines) {
-      checkPage();
-      doc.text(line, margin, y);
-      y += LINE_H;
-    }
-  }
-
   const now = new Date().toLocaleString();
 
-  // ── Title ──
-  heading1("OLYA v4.0 — Strategic Dialogue Intelligence Analysis Report");
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 100, 100);
-  doc.text(
-    `Generated: ${now}${sessionId ? `  |  Session ID: ${sessionId}` : ""}`,
-    margin,
-    y,
-  );
-  doc.setTextColor(0, 0, 0);
-  y += SECTION_GAP;
-
-  // ── 1. Session Summary ──
   const biasIncidents = entries.reduce(
     (acc, e) => acc + e.toxicityFlags.length,
     0,
@@ -106,163 +29,129 @@ export async function downloadAnalysisAsPDF(
     entries[entries.length - 1]?.emotions[0]?.emotionType ??
     "—";
 
-  heading2("1. Session Summary");
-  row("Health Score", `${healthScore}/100`);
-  row("Total Exchanges", `${entries.length}`);
-  row("Dominant Emotion", dominantEmotion);
-  row("Bias / Toxicity Incidents", `${biasIncidents}`);
-  y += SECTION_GAP;
+  const entriesHTML =
+    entries.length === 0
+      ? "<p>No entries recorded.</p>"
+      : entries
+          .map(
+            (entry) => `
+      <div class="entry">
+        <div class="entry-header">[${fmtTs(entry.timestamp)}] <strong>${entry.speaker}</strong></div>
+        <div class="entry-text">${entry.text}</div>
+        ${entry.emotions[0] ? `<div class="entry-meta">Emotion: ${entry.emotions[0].emotionType} (${fmt(entry.emotions[0].confidence)}) &nbsp;|&nbsp; Intent: ${entry.intents[0]?.intentType ?? "—"} (${entry.intents[0] ? fmt(entry.intents[0].confidence) : "—"})</div>` : ""}
+      </div>
+    `,
+          )
+          .join("");
 
-  // ── 2. Transcript Log ──
-  heading2("2. Transcript Log");
-  if (entries.length === 0) {
-    bodyText("No entries recorded.");
-  } else {
-    for (const entry of entries) {
-      checkPage(LINE_H * 2);
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "bold");
-      doc.text(`[${fmtTs(entry.timestamp)}] ${entry.speaker}`, margin, y);
-      y += LINE_H - 1;
-      doc.setFont("helvetica", "normal");
-      const lines = doc.splitTextToSize(entry.text, contentW - 4);
-      for (const line of lines) {
-        checkPage();
-        doc.text(line, margin + 4, y);
-        y += LINE_H - 1;
-      }
-      if (entry.emotions[0]) {
-        doc.setTextColor(80, 80, 120);
-        doc.text(
-          `Emotion: ${entry.emotions[0].emotionType} (${fmt(entry.emotions[0].confidence)})  Intent: ${entry.intents[0]?.intentType ?? "—"} (${entry.intents[0] ? fmt(entry.intents[0].confidence) : "—"})`,
-          margin + 4,
-          y,
-        );
-        doc.setTextColor(0, 0, 0);
-        y += LINE_H;
-      }
-      y += 2;
-    }
-  }
-  y += SECTION_GAP;
+  const speakerStatesHTML = Object.entries(beliefState.speakerStates)
+    .map(
+      ([role, state]) =>
+        `<tr><td>${role}</td><td>${state.entryCount}</td><td>${state.dominantEmotion}</td></tr>`,
+    )
+    .join("");
 
-  // ── 3. Emotion & Intent (latest) ──
-  if (latestEntry) {
-    heading2("3. Emotion & Intent Analysis (Latest Entry)");
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    doc.text("Emotions:", margin, y);
-    y += LINE_H;
-    doc.setFont("helvetica", "normal");
-    for (const e of latestEntry.emotions) {
-      checkPage();
-      doc.text(`  ${e.emotionType}: ${fmt(e.confidence)}`, margin, y);
-      y += LINE_H;
-    }
-    y += 2;
-    doc.setFont("helvetica", "bold");
-    doc.text("Intents:", margin, y);
-    y += LINE_H;
-    doc.setFont("helvetica", "normal");
-    for (const intent of latestEntry.intents) {
-      checkPage();
-      doc.text(`  ${intent.intentType}: ${fmt(intent.confidence)}`, margin, y);
-      y += LINE_H;
-    }
-    y += SECTION_GAP;
-  }
-
-  // ── 4. Belief State ──
-  heading2("4. Belief State");
-  row("Trust Level", `${beliefState.trustLevel}/100`);
-  row("Persuasion Score", `${beliefState.persuasionScore}/100`);
-  row(
-    "Active Concerns",
-    beliefState.concerns.length > 0 ? beliefState.concerns.join(", ") : "None",
-  );
-  y += 2;
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.text("Speaker State Summary:", margin, y);
-  y += LINE_H;
-  doc.setFont("helvetica", "normal");
-  for (const [role, state] of Object.entries(beliefState.speakerStates)) {
-    checkPage();
-    doc.text(
-      `  ${role}: ${state.entryCount} entries, dominant emotion: ${state.dominantEmotion}`,
-      margin,
-      y,
-    );
-    y += LINE_H;
-  }
-  y += SECTION_GAP;
-
-  // ── 5. Safety & Quality ──
-  heading2("5. Safety & Quality");
   const allToxicityFlags = entries.flatMap((e) =>
     e.toxicityFlags.map((f) => f.flagType),
   );
   const uniqueFlags = [...new Set(allToxicityFlags)];
-  if (uniqueFlags.length === 0) {
-    bodyText("\u2713 No toxicity or bias flags detected across all exchanges.");
-  } else {
-    bodyText(
-      `${biasIncidents} toxicity incident(s) detected. Flagged categories:`,
-    );
-    for (const flag of uniqueFlags) {
-      checkPage();
-      doc.setTextColor(180, 0, 0);
-      doc.text(`  \u2022 ${flag}`, margin, y);
-      doc.setTextColor(0, 0, 0);
-      y += LINE_H;
-    }
-  }
-  y += SECTION_GAP;
+  const safetyHTML =
+    uniqueFlags.length === 0
+      ? "<p class='ok'>✓ No toxicity or bias flags detected.</p>"
+      : `<p>${biasIncidents} incident(s) detected:</p><ul>${uniqueFlags.map((f) => `<li>${f}</li>`).join("")}</ul>`;
 
-  // ── 6. Strategy Recommendations ──
-  heading2("6. Strategy Recommendations");
   const allStrategies = entries.flatMap((e) => e.strategies);
-  if (allStrategies.length === 0) {
-    bodyText("No strategy recommendations generated for this session.");
+  const strategiesHTML =
+    allStrategies.length === 0
+      ? "<p>No strategy recommendations generated.</p>"
+      : `<ol>${allStrategies.map((s) => `<li><strong>${s.strategy}</strong>${s.rationale ? `<br/><em>${s.rationale}</em>` : ""}<br/>Confidence: ${fmt(s.confidence)}</li>`).join("")}</ol>`;
+
+  const latestEmotionHTML = latestEntry
+    ? `<h2>3. Emotion &amp; Intent Analysis (Latest Entry)</h2>
+      <h3>Emotions</h3><ul>${latestEntry.emotions.map((e) => `<li>${e.emotionType}: ${fmt(e.confidence)}</li>`).join("")}</ul>
+      <h3>Intents</h3><ul>${latestEntry.intents.map((i) => `<li>${i.intentType}: ${fmt(i.confidence)}</li>`).join("")}</ul>`
+    : "";
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Olya v4.0 Analysis Report</title>
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a2e; margin: 0; padding: 24px; font-size: 11px; }
+    h1 { font-size: 18px; border-bottom: 2px solid #0d9488; padding-bottom: 8px; margin-bottom: 4px; }
+    h2 { font-size: 13px; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 20px; color: #0d9488; }
+    h3 { font-size: 11px; margin: 8px 0 4px; }
+    .meta { color: #666; font-size: 9px; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+    td, th { padding: 4px 8px; border: 1px solid #ddd; text-align: left; }
+    th { background: #f0fdfa; }
+    .entry { margin: 8px 0; padding: 8px; border-left: 3px solid #0d9488; background: #f9fafb; }
+    .entry-header { font-weight: bold; color: #0d9488; margin-bottom: 3px; }
+    .entry-text { margin-bottom: 3px; }
+    .entry-meta { color: #666; font-size: 9px; }
+    .ok { color: #059669; }
+    ul, ol { padding-left: 20px; margin: 4px 0; }
+    li { margin: 3px 0; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <h1>OLYA v4.0 — Strategic Dialogue Intelligence Analysis Report</h1>
+  <div class="meta">Generated: ${now}${sessionId ? ` &nbsp;|&nbsp; Session: ${sessionId}` : ""}</div>
+
+  <h2>1. Session Summary</h2>
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr><td>Health Score</td><td>${healthScore}/100</td></tr>
+    <tr><td>Total Exchanges</td><td>${entries.length}</td></tr>
+    <tr><td>Dominant Emotion</td><td>${dominantEmotion}</td></tr>
+    <tr><td>Bias / Toxicity Incidents</td><td>${biasIncidents}</td></tr>
+    <tr><td>Trust Level</td><td>${beliefState.trustLevel}/100</td></tr>
+    <tr><td>Persuasion Score</td><td>${beliefState.persuasionScore}/100</td></tr>
+  </table>
+
+  <h2>2. Transcript Log</h2>
+  ${entriesHTML}
+
+  ${latestEmotionHTML}
+
+  <h2>4. Belief State</h2>
+  <table>
+    <tr><th>Speaker</th><th>Entries</th><th>Dominant Emotion</th></tr>
+    ${speakerStatesHTML}
+  </table>
+  <p>Active Concerns: ${beliefState.concerns.length > 0 ? beliefState.concerns.join(", ") : "None"}</p>
+
+  <h2>5. Safety &amp; Quality</h2>
+  ${safetyHTML}
+
+  <h2>6. Strategy Recommendations</h2>
+  ${strategiesHTML}
+
+  <div style="margin-top:24px; padding-top:8px; border-top:1px solid #ccc; color:#999; font-size:8px;">
+    OLYA v4.0 — AI-Driven Strategic Dialogue Intelligence System
+  </div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, "_blank");
+  if (win) {
+    win.addEventListener("load", () => {
+      setTimeout(() => {
+        win.print();
+        URL.revokeObjectURL(url);
+      }, 500);
+    });
   } else {
-    let idx = 1;
-    for (const s of allStrategies) {
-      checkPage(LINE_H * 2);
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "bold");
-      doc.text(`${idx}. ${s.strategy}`, margin, y);
-      y += LINE_H;
-      doc.setFont("helvetica", "normal");
-      if (s.rationale) {
-        const lines = doc.splitTextToSize(`   ${s.rationale}`, contentW - 8);
-        for (const line of lines) {
-          checkPage();
-          doc.text(line, margin, y);
-          y += LINE_H;
-        }
-      }
-      doc.setTextColor(100, 100, 100);
-      doc.text(`   Confidence: ${fmt(s.confidence)}`, margin, y);
-      doc.setTextColor(0, 0, 0);
-      y += LINE_H + 2;
-      idx++;
-    }
+    // Fallback: direct download as HTML file
+    const a = document.createElement("a");
+    a.href = url;
+    const filename = `olya-analysis-${sessionId ? sessionId.slice(-8) : "report"}-${Date.now()}.html`;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
   }
-
-  // ── Footer ──
-  const totalPages = (doc.internal as { pages: unknown[] }).pages.length - 1;
-  for (let p = 1; p <= totalPages; p++) {
-    doc.setPage(p);
-    doc.setFontSize(7);
-    doc.setTextColor(140, 140, 140);
-    doc.text(
-      `OLYA v4.0 — AI-Driven Strategic Dialogue Intelligence System  |  Page ${p} of ${totalPages}`,
-      margin,
-      doc.internal.pageSize.getHeight() - 8,
-    );
-    doc.setTextColor(0, 0, 0);
-  }
-
-  const filename = `olya-analysis-${sessionId ? sessionId.slice(-8) : "report"}-${Date.now()}.pdf`;
-  doc.save(filename);
 }

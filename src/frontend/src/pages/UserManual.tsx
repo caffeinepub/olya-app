@@ -146,6 +146,11 @@ const TOC_ITEMS = [
   { id: "strategy-engine", label: "Strategy Engine Panel" },
   { id: "session-summary", label: "Session Summary Bar" },
   { id: "ethics-toxicity", label: "Ethics & Toxicity Indicators" },
+  { id: "file-attachments", label: "File Attachments & Preview" },
+  { id: "print-export", label: "Print & PDF Export" },
+  { id: "visual-theme", label: "Visual Theme & Dark Mode" },
+  { id: "pwa-mobile", label: "PWA & Mobile Installation" },
+  { id: "api-architecture", label: "API Architecture & Integration" },
 ];
 
 export default function UserManual() {
@@ -169,7 +174,7 @@ export default function UserManual() {
             OLYA
           </div>
           <div className="text-xs font-mono text-muted-foreground">
-            STRATEGIC DIALOGUE INTELLIGENCE — USER MANUAL v3.0
+            STRATEGIC DIALOGUE INTELLIGENCE — USER MANUAL v4.0
           </div>
         </div>
         <div className="ml-auto text-xs font-mono text-muted-foreground">
@@ -193,7 +198,7 @@ export default function UserManual() {
             <span className="text-xs font-mono text-foreground/70">
               User Manual
             </span>
-            <FeatureTag label="v3.0" />
+            <FeatureTag label="v4.0" />
           </div>
         </div>
         <Button
@@ -223,7 +228,7 @@ export default function UserManual() {
                 <h1 className="text-3xl font-bold tracking-tight">
                   Olya User Manual
                 </h1>
-                <FeatureTag label="v3.0" />
+                <FeatureTag label="v4.0" />
               </div>
               <p className="text-sm font-mono text-muted-foreground mb-3">
                 STRATEGIC DIALOGUE INTELLIGENCE PLATFORM
@@ -239,10 +244,10 @@ export default function UserManual() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:grid-cols-4">
             {[
-              { label: "Version", value: "3.0" },
+              { label: "Version", value: "4.0" },
               { label: "Platform", value: "Internet Computer" },
               { label: "ASR Engines", value: "3 Supported" },
-              { label: "Analysis Panels", value: "6 Active" },
+              { label: "Analysis Panels", value: "10 Active" },
             ].map((item) => (
               <div
                 key={item.label}
@@ -1373,6 +1378,320 @@ export default function UserManual() {
           </InfoBox>
         </Section>
 
+        {/* ── SECTION 14: File Attachments ── */}
+        <Section
+          id="file-attachments"
+          icon={<Mic size={15} />}
+          title="File Attachments & Preview"
+          subtitle="UPLOAD DOCUMENTS & IMAGES FOR ANALYSIS"
+        >
+          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
+            Version 4.0 introduces file attachment support, allowing you to
+            upload documents, PDFs, and images directly into the transcript
+            input area for analysis. Attach files alongside or instead of
+            manually typed text.
+          </p>
+          <SubSection title="Supported File Types">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {[
+                {
+                  label: "Documents",
+                  desc: "Microsoft Word (.doc, .docx), plain text (.txt) files. Text content is extracted and loaded into the input area for NLP analysis.",
+                  color: "teal" as const,
+                },
+                {
+                  label: "PDF Files",
+                  desc: "PDF documents (.pdf). Text content is extracted from the PDF and added to the transcript input for analysis.",
+                  color: "purple" as const,
+                },
+                {
+                  label: "Images",
+                  desc: "JPEG, PNG, GIF, WebP, and other common image formats. Images are displayed as a thumbnail preview before submission.",
+                  color: "amber" as const,
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded border border-border/50 bg-card/30 p-3"
+                >
+                  <FeatureTag label={item.label} color={item.color} />
+                  <p className="text-xs text-foreground/70 mt-2 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </SubSection>
+          <SubSection title="Attaching a File">
+            <StepList
+              steps={[
+                "Click the paperclip (📎) icon in the transcript input area toolbar.",
+                "Select the file type from the dropdown: PDF/Word document, text file, or image.",
+                "Choose your file using the system file picker.",
+                "A preview appears below the input: image thumbnail for photos, or a text snippet for documents.",
+                "Review the preview to confirm the correct file was selected.",
+                "Click the ✕ button on the preview to remove the attachment if needed.",
+                "Submit the entry as normal — the file content will be included in the analysis.",
+              ]}
+            />
+          </SubSection>
+          <InfoBox variant="info">
+            File content is processed entirely in your browser — no file data is
+            transmitted to external servers. Only the extracted text or image
+            data is stored in your session on the Internet Computer.
+          </InfoBox>
+        </Section>
+
+        {/* ── SECTION 15: Print & PDF Export ── */}
+        <Section
+          id="print-export"
+          icon={<Printer size={15} />}
+          title="Print & PDF Export"
+          subtitle="EXPORT ANALYSIS RESULTS — NEW IN v4.0"
+        >
+          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
+            Version 4.0 adds the ability to print analysis results and export
+            them as PDF files directly from the dashboard. These options appear
+            in the session action bar when a session has transcript entries.
+          </p>
+          <SubSection title="Print Analysis">
+            <StepList
+              steps={[
+                "Open an active session with at least one transcript entry.",
+                'Locate the "Print Analysis" button in the top action bar of the main content area.',
+                "Click the button to open your browser's print dialog.",
+                "Select your printer or choose 'Save as PDF' in the print destination.",
+                "Click Print — the output is formatted specifically for printing, removing UI chrome.",
+              ]}
+            />
+          </SubSection>
+          <SubSection title="Download as PDF">
+            <StepList
+              steps={[
+                "Open an active session with at least one transcript entry.",
+                'Click the "Download PDF" button in the session action bar.',
+                "The PDF is generated automatically in your browser — no print dialog appears.",
+                "The file is saved directly to your downloads folder with a timestamped filename.",
+                "The PDF contains all analysis panels: session summary, emotion/intent data, belief state, strategy recommendations, and safety metrics.",
+              ]}
+            />
+          </SubSection>
+          <InfoBox variant="tip">
+            The Print and Download PDF buttons are only visible when an active
+            session has transcript entries. They are hidden for empty sessions.
+          </InfoBox>
+          <InfoBox variant="info">
+            PDF generation uses your browser's built-in capabilities. For best
+            results, use Chrome or Edge. The PDF output respects your current
+            light/dark theme setting.
+          </InfoBox>
+        </Section>
+
+        {/* ── SECTION 16: Visual Theme ── */}
+        <Section
+          id="visual-theme"
+          icon={<Shield size={15} />}
+          title="Visual Theme & Dark Mode"
+          subtitle="LIGHT / DARK MODE SWITCHING"
+        >
+          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
+            Olya supports full Light and Dark mode switching, along with
+            multiple visual themes. Your preference is saved automatically and
+            persists across sessions.
+          </p>
+          <SubSection title="Switching Themes">
+            <StepList
+              steps={[
+                "Open the Settings or Theme panel from the application header or settings menu.",
+                'Navigate to the "Visual Theme" tab.',
+                'Toggle between "Light Mode" and "Dark Mode" using the mode switch.',
+                "The interface updates immediately — no page reload required.",
+                "Your selection is saved in browser local storage and applied on future visits.",
+              ]}
+            />
+          </SubSection>
+          <SubSection title="Available Themes">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[
+                {
+                  label: "Dark Mode (Default)",
+                  desc: "Deep navy background with teal accents — optimized for extended use in low-light environments.",
+                  color: "teal" as const,
+                },
+                {
+                  label: "Light Mode",
+                  desc: "Clean white background with high-contrast text — ideal for bright environments and printing.",
+                  color: "amber" as const,
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded border border-border/50 bg-card/30 p-3"
+                >
+                  <FeatureTag label={item.label} color={item.color} />
+                  <p className="text-xs text-foreground/70 mt-2 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </SubSection>
+        </Section>
+
+        {/* ── SECTION 17: PWA & Mobile ── */}
+        <Section
+          id="pwa-mobile"
+          icon={<Globe size={15} />}
+          title="PWA & Mobile Installation"
+          subtitle="INSTALL ON ANDROID & iOS"
+        >
+          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
+            Olya is a Progressive Web App (PWA), meaning it can be installed
+            directly from your browser onto Android and iOS devices for a native
+            app-like experience — no app store required.
+          </p>
+          <SubSection title="Installing on Android">
+            <StepList
+              steps={[
+                "Open Olya in Chrome for Android.",
+                'Tap the browser menu (⋮) and select "Add to Home Screen" or "Install App".',
+                "Confirm the installation prompt.",
+                "The Olya icon appears on your home screen. Tap it to launch in full-screen app mode.",
+              ]}
+            />
+          </SubSection>
+          <SubSection title="Installing on iOS (Safari)">
+            <StepList
+              steps={[
+                "Open Olya in Safari on your iPhone or iPad.",
+                "Tap the Share button (□↑) at the bottom of the screen.",
+                'Scroll down and tap "Add to Home Screen".',
+                'Enter a name for the app (default: "Olya") and tap "Add".',
+                "The Olya icon appears on your home screen and opens in full-screen mode.",
+              ]}
+            />
+          </SubSection>
+          <SubSection title="Mobile Features">
+            <ul className="space-y-2">
+              {[
+                "Fully responsive layout adapts to all screen sizes (phones, tablets, desktops)",
+                "Touch-optimized controls — delete buttons and session cards are tap-friendly",
+                "Microphone access works on mobile browsers for ASR transcription",
+                "File attachment picker uses the device's native file system on mobile",
+                "PWA manifest provides app icon, splash screen, and full-screen launch",
+              ].map((cap, i) => (
+                <li
+                  key={cap + String(i)}
+                  className="flex items-start gap-2 text-sm text-foreground/80"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal mt-1.5 flex-shrink-0" />
+                  {cap}
+                </li>
+              ))}
+            </ul>
+          </SubSection>
+          <InfoBox variant="info">
+            PWA installation on iOS requires Safari. Chrome and Firefox on iOS
+            do not support the "Add to Home Screen" PWA flow.
+          </InfoBox>
+        </Section>
+
+        {/* ── SECTION 18: API Architecture ── */}
+        <Section
+          id="api-architecture"
+          icon={<Zap size={15} />}
+          title="API Architecture & Integration"
+          subtitle="EXTERNAL ML MODEL INTEGRATION READINESS"
+        >
+          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
+            Version 4.0 structures the Olya platform for future connection to
+            external ML APIs. The current UI represents the full AI/ML pipeline
+            — ASR, NLP, emotion analysis, belief modeling, strategy generation,
+            and ethics — with client-side simulation. Each pipeline stage is
+            architecturally isolated for clean API swap-in.
+          </p>
+          <SubSection title="AI/ML Pipeline Components">
+            <div className="space-y-2">
+              {[
+                {
+                  stage: "ASR (Speech-to-Text)",
+                  tech: "Web Speech API (live), Whisper (simulated), DeepSpeech (simulated)",
+                  status: "Partially Live",
+                  color: "teal" as const,
+                },
+                {
+                  stage: "NLP (Text Understanding)",
+                  tech: "BERT / RoBERTa — client-side heuristic simulation; ready for API integration",
+                  status: "Simulated",
+                  color: "amber" as const,
+                },
+                {
+                  stage: "Emotion & Intent",
+                  tech: "Fine-tuned transformer simulation; replaceable with Hugging Face Inference API",
+                  status: "Simulated",
+                  color: "purple" as const,
+                },
+                {
+                  stage: "Belief Modeling",
+                  tech: "Knowledge Graph + Bayesian Network simulation; designed for external graph API",
+                  status: "Simulated",
+                  color: "orange" as const,
+                },
+                {
+                  stage: "Strategy Engine",
+                  tech: "LLaMA + Reinforcement Learning simulation; ready for LLM API endpoint",
+                  status: "Simulated",
+                  color: "teal" as const,
+                },
+                {
+                  stage: "Ethics & Safety",
+                  tech: "Bias detection, toxicity filtering, hallucination guardrails — local heuristics + API-ready",
+                  status: "Live (Local)",
+                  color: "red" as const,
+                },
+              ].map((item) => (
+                <div
+                  key={item.stage}
+                  className="flex items-start gap-3 rounded border border-border/40 bg-card/20 p-3"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="text-xs font-semibold text-foreground/90">
+                        {item.stage}
+                      </span>
+                      <FeatureTag label={item.status} color={item.color} />
+                    </div>
+                    <p className="text-xs text-foreground/60 leading-relaxed">
+                      {item.tech}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SubSection>
+          <SubSection title="Connecting to External APIs">
+            <p className="text-sm text-foreground/80 leading-relaxed mb-3">
+              The Olya platform cannot execute ML models natively on the
+              Internet Computer. To connect real models, each pipeline utility
+              in <span className="font-mono text-teal text-xs">src/utils/</span>{" "}
+              is designed to be replaced with an API fetch call:
+            </p>
+            <StepList
+              steps={[
+                "Each pipeline stage has a dedicated utility file (e.g., nlpSimulator.ts, emotionIntentSimulator.ts).",
+                "Replace the simulation function body with a fetch() call to your external ML API endpoint.",
+                "The Internet Computer backend supports HTTP outcalls for server-side API calls if needed.",
+                "All pipeline interfaces are typed — TypeScript will catch any API response shape mismatches.",
+              ]}
+            />
+          </SubSection>
+          <InfoBox variant="info">
+            The Internet Computer cannot make outbound HTTP calls from the
+            frontend canister directly. Use the http-outcalls backend component
+            or make API calls client-side from the React frontend.
+          </InfoBox>
+        </Section>
+
         <Separator className="my-8 print:my-6" />
 
         {/* Footer */}
@@ -1384,7 +1703,7 @@ export default function UserManual() {
               className="w-6 h-6 object-contain opacity-60"
             />
             <span className="text-xs font-mono text-muted-foreground">
-              OLYA v3.0 — STRATEGIC DIALOGUE INTELLIGENCE
+              OLYA v4.0 — STRATEGIC DIALOGUE INTELLIGENCE
             </span>
           </div>
           <p className="text-xs text-muted-foreground mb-1">

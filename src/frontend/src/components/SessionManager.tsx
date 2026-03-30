@@ -71,6 +71,7 @@ export default function SessionManager({
           onClick={onNewSession}
           disabled={isCreating}
           title="New Session"
+          data-ocid="session.primary_button"
         >
           {isCreating ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -84,23 +85,30 @@ export default function SessionManager({
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
           {sessions.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
+            <div
+              className="text-center py-8 text-muted-foreground"
+              data-ocid="session.empty_state"
+            >
               <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-30" />
               <p className="text-xs">No sessions yet</p>
               <p className="text-xs opacity-60 mt-1">Click + to start</p>
             </div>
           )}
-          {sessions.map((session) => {
+          {sessions.map((session, index) => {
             const isActive = session.sessionId === activeSessionId;
             const isDeleting = deletingId === session.sessionId;
             return (
               // Outer wrapper: relative container for positioning delete button
-              <div key={session.sessionId} className="relative group">
+              <div
+                key={session.sessionId}
+                className="relative group"
+                data-ocid={`session.item.${index + 1}`}
+              >
                 {/* Main session select button */}
                 <button
                   type="button"
                   onClick={() => onSessionSelect(session.sessionId)}
-                  className={`w-full text-left rounded-lg p-2.5 pr-8 cursor-pointer transition-all duration-150 ${
+                  className={`w-full text-left rounded-lg p-2.5 pr-10 cursor-pointer transition-all duration-150 ${
                     isActive
                       ? "bg-primary/15 border border-primary/30"
                       : "hover:bg-muted/50 border border-transparent"
@@ -153,13 +161,15 @@ export default function SessionManager({
                   </div>
                 </button>
 
-                {/* Delete button — absolute sibling, not nested inside the session button */}
+                {/* Delete button — always visible (slightly transparent when not hovered/focused)
+                    Uses opacity CSS trick compatible with both hover (desktop) and touch (mobile) */}
                 <button
                   type="button"
                   onClick={(e) => handleDelete(e, session.sessionId)}
                   disabled={isDeleting}
-                  className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive z-10"
+                  className="absolute top-1.5 right-1.5 opacity-40 group-hover:opacity-100 focus:opacity-100 active:opacity-100 transition-opacity p-1 rounded hover:bg-destructive/20 active:bg-destructive/20 text-muted-foreground hover:text-destructive active:text-destructive z-10 touch-manipulation"
                   title="Delete session"
+                  data-ocid={`session.delete_button.${index + 1}`}
                 >
                   {isDeleting ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
