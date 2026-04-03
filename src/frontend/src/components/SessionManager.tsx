@@ -98,19 +98,18 @@ export default function SessionManager({
             const isActive = session.sessionId === activeSessionId;
             const isDeleting = deletingId === session.sessionId;
             return (
-              // Outer wrapper: relative container for positioning delete button
               <div
                 key={session.sessionId}
-                className="relative group"
+                className="flex items-stretch group"
                 data-ocid={`session.item.${index + 1}`}
               >
                 {/* Main session select button */}
                 <button
                   type="button"
                   onClick={() => onSessionSelect(session.sessionId)}
-                  className={`w-full text-left rounded-lg p-2.5 pr-10 cursor-pointer transition-all duration-150 ${
+                  className={`flex-1 min-w-0 text-left rounded-l-lg p-2.5 cursor-pointer transition-all duration-150 ${
                     isActive
-                      ? "bg-primary/15 border border-primary/30"
+                      ? "bg-primary/15 border border-primary/30 border-r-0"
                       : "hover:bg-muted/50 border border-transparent"
                   }`}
                 >
@@ -161,20 +160,23 @@ export default function SessionManager({
                   </div>
                 </button>
 
-                {/* Delete button — always visible (slightly transparent when not hovered/focused)
-                    Uses opacity CSS trick compatible with both hover (desktop) and touch (mobile) */}
+                {/* Delete button — always visible as a flex sibling, never clipped by overflow */}
                 <button
                   type="button"
                   onClick={(e) => handleDelete(e, session.sessionId)}
                   disabled={isDeleting}
-                  className="absolute top-1.5 right-1.5 opacity-40 group-hover:opacity-100 focus:opacity-100 active:opacity-100 transition-opacity p-1 rounded hover:bg-destructive/20 active:bg-destructive/20 text-muted-foreground hover:text-destructive active:text-destructive z-10 touch-manipulation"
+                  className={`flex items-center justify-center w-8 shrink-0 rounded-r-lg transition-colors touch-manipulation ${
+                    isActive
+                      ? "bg-primary/10 border border-primary/30 border-l-0 hover:bg-destructive/20 hover:text-destructive"
+                      : "border border-transparent hover:bg-destructive/10 hover:text-destructive text-muted-foreground/60 hover:border-destructive/20"
+                  }`}
                   title="Delete session"
                   data-ocid={`session.delete_button.${index + 1}`}
                 >
                   {isDeleting ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   )}
                 </button>
               </div>
