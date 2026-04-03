@@ -15,55 +15,9 @@ import {
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, Globe } from "lucide-react";
 import React, { useState } from "react";
+import { LANGUAGES } from "../data/languages";
 import { useAppLanguagePreference } from "../hooks/useAppLanguagePreference";
 import { useTranslation } from "../hooks/useTranslation";
-
-// Supported app UI languages — original 9 + 32 additional global languages
-const APP_LANGUAGES = [
-  // Original languages
-  { code: "en", name: "English", nativeName: "English" },
-  { code: "es", name: "Spanish", nativeName: "Español" },
-  { code: "fr", name: "French", nativeName: "Français" },
-  { code: "de", name: "German", nativeName: "Deutsch" },
-  { code: "pt", name: "Portuguese", nativeName: "Português" },
-  { code: "ar", name: "Arabic", nativeName: "العربية" },
-  { code: "zh", name: "Chinese", nativeName: "中文" },
-  { code: "ru", name: "Russian", nativeName: "Русский" },
-  { code: "it", name: "Italian", nativeName: "Italiano" },
-  // Additional global languages
-  { code: "hi", name: "Hindi", nativeName: "हिन्दी" },
-  { code: "bn", name: "Bengali", nativeName: "বাংলা" },
-  { code: "ur", name: "Urdu", nativeName: "اردو" },
-  { code: "sw", name: "Swahili", nativeName: "Kiswahili" },
-  { code: "tr", name: "Turkish", nativeName: "Türkçe" },
-  { code: "vi", name: "Vietnamese", nativeName: "Tiếng Việt" },
-  { code: "th", name: "Thai", nativeName: "ไทย" },
-  { code: "id", name: "Indonesian", nativeName: "Bahasa Indonesia" },
-  { code: "ms", name: "Malay", nativeName: "Bahasa Melayu" },
-  { code: "pl", name: "Polish", nativeName: "Polski" },
-  { code: "uk", name: "Ukrainian", nativeName: "Українська" },
-  { code: "nl", name: "Dutch", nativeName: "Nederlands" },
-  { code: "ro", name: "Romanian", nativeName: "Română" },
-  { code: "el", name: "Greek", nativeName: "Ελληνικά" },
-  { code: "cs", name: "Czech", nativeName: "Čeština" },
-  { code: "hu", name: "Hungarian", nativeName: "Magyar" },
-  { code: "he", name: "Hebrew", nativeName: "עברית" },
-  { code: "fa", name: "Persian", nativeName: "فارسی" },
-  { code: "tl", name: "Tagalog", nativeName: "Tagalog" },
-  { code: "ha", name: "Hausa", nativeName: "Hausa" },
-  { code: "yo", name: "Yoruba", nativeName: "Yorùbá" },
-  { code: "am", name: "Amharic", nativeName: "አማርኛ" },
-  { code: "my", name: "Burmese", nativeName: "မြန်မာ" },
-  { code: "km", name: "Khmer", nativeName: "ខ្មែរ" },
-  { code: "so", name: "Somali", nativeName: "Soomaali" },
-  { code: "zu", name: "Zulu", nativeName: "isiZulu" },
-  { code: "sr", name: "Serbian", nativeName: "Српски" },
-  { code: "hr", name: "Croatian", nativeName: "Hrvatski" },
-  { code: "sk", name: "Slovak", nativeName: "Slovenčina" },
-  { code: "bg", name: "Bulgarian", nativeName: "Български" },
-  { code: "ca", name: "Catalan", nativeName: "Català" },
-  { code: "pa", name: "Punjabi", nativeName: "ਪੰਜਾਬੀ" },
-];
 
 interface AppLanguageSelectorFullProps {
   onContinue: () => void;
@@ -76,7 +30,7 @@ export function AppLanguageSelectorFull({
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
 
-  const filtered = APP_LANGUAGES.filter((l) => {
+  const filtered = LANGUAGES.filter((l) => {
     const nativeName = l.nativeName ?? "";
     return (
       l.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -150,7 +104,7 @@ export function AppLanguageSelectorCompact() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
-  const currentLang = APP_LANGUAGES.find((l) => l.code === language);
+  const currentLang = LANGUAGES.find((l) => l.code === language);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -172,7 +126,7 @@ export function AppLanguageSelectorCompact() {
           <CommandList className="max-h-72">
             <CommandEmpty>No language found.</CommandEmpty>
             <CommandGroup heading={t("languageSelector.appLanguage")}>
-              {APP_LANGUAGES.map((lang) => (
+              {LANGUAGES.map((lang) => (
                 <CommandItem
                   key={lang.code}
                   value={`${lang.name} ${lang.nativeName ?? ""} ${lang.code}`}
