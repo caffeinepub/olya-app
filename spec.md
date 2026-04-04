@@ -1,30 +1,29 @@
-# Olya App v4.0
+# Olya App
 
 ## Current State
-The app is a multilingual AI-Driven Strategic Dialogue Intelligence System with:
-- Dashboard with session management, transcript input, and 6 analysis panels (Emotion/Intent, Belief State, Semantic Analysis, Pattern Predictions, Safety/Quality, Strategy Engine)
-- SessionSummaryBar showing health score, exchanges, dominant emotion, top strategy, and bias incidents
-- AppHeader with ASR engine badge, NLP/Ethics status, API mode, manual link, theme, language selector, and login
-- Version number not explicitly displayed in the UI
+The app has a `SessionManager` component that renders session cards with a delete (trash) button. The delete button calls `onDeleteSession` which triggers `handleDeleteSession` in `Dashboard.tsx`, which calls `deleteSession.mutateAsync(sessionId)` — a backend call via `useDeleteSession` hook. 
+
+The reported issue is that "archived sessions can't be deleted." Based on code inspection:
+- All sessions in the list come from `useGetSessions()` (backend only)
+- `handleDeleteSession` strictly calls the backend `deleteSession` — if that fails, the error is caught and a toast error is shown, but the session stays in the UI
+- There is no "archived" flag or separate UI state for archived sessions; all sessions shown are backend sessions
+- The delete button is always visible and properly structured
+- The issue is likely that when `deleteSession` backend call throws (e.g., "session not found" or ownership error), the UI shows an error but doesn't remove the session
 
 ## Requested Changes (Diff)
 
 ### Add
-- **Print Analysis button** in the Dashboard when an active session has transcript entries
-- **PrintAnalysisView component** — a print-optimized layout that renders all analysis data (session summary, transcript entries, emotion/intent results, belief state, semantic analysis, pattern predictions, safety/quality, strategy engine recommendations)
-- **Print CSS** — `@media print` styles to hide the sidebar, header, and controls; show only the print view
-- **Version 4.0 label** in the AppHeader (e.g., a small badge or text next to the app name)
+- Optimistic deletion: remove session from local query cache immediately when delete is triggered, before the backend call completes
+- Fallback: if backend delete fails with "not found" or similar errors, still remove from local UI state so stale/orphaned sessions don't persist
+- Error handling that distinguishes between "already deleted" (treat as success) vs real errors
 
 ### Modify
-- `Dashboard.tsx` — add a "Print Analysis" button in the toolbar above or below the SessionSummaryBar; clicking it triggers `window.print()` after making the PrintAnalysisView visible
-- `AppHeader.tsx` — add "v4.0" text/badge next to the Olya logo/name
-- `index.css` — add `@media print` rules to hide non-printable UI and show the print view
+- `handleDeleteSession` in `Dashboard.tsx`: add optimistic update pattern using react-query's `queryClient.setQueryData` to immediately remove the session from the list
+- `useDeleteSession` in `useQueries.ts`: enhance to support optimistic updates via `onMutate`/`onError` rollback
 
 ### Remove
 - Nothing removed
 
 ## Implementation Plan
-1. Create `src/frontend/src/components/PrintAnalysisView.tsx` — full analysis report layout (header with session metadata, summary stats, transcript log, all panel data)
-2. Update `Dashboard.tsx` — import PrintAnalysisView, add Print button (Printer icon), pass all analysis data to PrintAnalysisView via a hidden `print-only` div
-3. Update `AppHeader.tsx` — add v4.0 badge next to logo
-4. Update `index.css` — add `@media print` CSS to hide `.no-print` elements and show `.print-only` elements
+1. Update `useDeleteSession` in `useQueries.ts` to use optimistic updates: immediately remove session from cache on `onMutate`, rollback on `onError` (unless the error indicates session was already gone)
+2. Update `handleDeleteSession` in `Dashboard.tsx` to handle errors more gracefully — if backend says session not found, still clear from UI

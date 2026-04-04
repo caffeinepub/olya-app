@@ -27,6 +27,18 @@ import {
 import { useTranslation } from "../hooks/useTranslation";
 import { downloadAnalysisAsPDF } from "../utils/downloadPDF";
 
+/** Returns true if the error message indicates the session no longer exists on the backend. */
+function isNotFoundError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    msg.toLowerCase().includes("not found") ||
+    msg.toLowerCase().includes("notfound") ||
+    msg.toLowerCase().includes("does not exist") ||
+    msg.toLowerCase().includes("no session") ||
+    msg.toLowerCase().includes("session not")
+  );
+}
+
 export default function Dashboard() {
   const { identity } = useInternetIdentity();
   const isAuthenticated = !!identity;
@@ -90,7 +102,17 @@ export default function Dashboard() {
       toast.success("Session deleted.");
     } catch (err) {
       console.error("Failed to delete session:", err);
-      toast.error("Failed to delete session. Please try again.");
+      // If the session was already gone on the backend, treat it as a successful
+      // deletion — clear it from UI state and show success rather than an error.
+      if (isNotFoundError(err)) {
+        if (activeSessionId === sessionId) {
+          setActiveSessionId(null);
+          clearEntries();
+        }
+        toast.success("Session deleted.");
+      } else {
+        toast.error("Failed to delete session. Please try again.");
+      }
     }
   };
 

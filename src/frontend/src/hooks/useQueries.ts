@@ -183,6 +183,18 @@ export function useUpdateSession() {
   });
 }
 
+/** Returns true if the error message indicates the session no longer exists on the backend. */
+function isNotFoundError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    msg.toLowerCase().includes("not found") ||
+    msg.toLowerCase().includes("notfound") ||
+    msg.toLowerCase().includes("does not exist") ||
+    msg.toLowerCase().includes("no session") ||
+    msg.toLowerCase().includes("session not")
+  );
+}
+
 export function useDeleteSession() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -192,7 +204,37 @@ export function useDeleteSession() {
       if (!actor) throw new Error("Actor not available");
       return actor.deleteSession(sessionId);
     },
-    onSuccess: () => {
+
+    onMutate: async (sessionId: string) => {
+      // Cancel any in-flight refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["sessions"] });
+
+      // Snapshot current list for potential rollback
+      const previousSessions = queryClient.getQueryData<
+        ExtendedConversationSession[]
+      >(["sessions"]);
+
+      // Optimistically remove the session from the cache immediately
+      queryClient.setQueryData<ExtendedConversationSession[]>(
+        ["sessions"],
+        (old) => (old ? old.filter((s) => s.sessionId !== sessionId) : []),
+      );
+
+      return { previousSessions };
+    },
+
+    onError: (err, _sessionId, context) => {
+      // If the session wasn't found on the backend, it's already gone — keep it removed
+      if (isNotFoundError(err)) return;
+
+      // For other errors, roll back to the previous list
+      if (context?.previousSessions !== undefined) {
+        queryClient.setQueryData(["sessions"], context.previousSessions);
+      }
+    },
+
+    onSettled: () => {
+      // Always sync with the backend after the mutation completes
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
     },
   });
