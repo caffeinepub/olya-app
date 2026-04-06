@@ -13,8 +13,10 @@ import { useRef } from "react";
 export interface AttachedFileInfo {
   name: string;
   type: string;
+  /** The text content to insert into the transcript input */
   content: string;
-  preview?: string; // dataURL for images, text snippet for docs
+  /** For images: the base64 data URL used for the thumbnail preview only */
+  preview?: string;
   isImage?: boolean;
 }
 
@@ -77,10 +79,12 @@ export default function FileAttachmentButton({
     try {
       if (isImage) {
         const dataUrl = await readFileAsDataURL(file);
+        // content is a human-readable label — NOT the base64 data
+        // The base64 goes only into `preview` for the thumbnail
         onFileAttached({
           name: file.name,
           type: "image",
-          content: `[Image attached: ${file.name}]\nImage data: ${dataUrl.substring(0, 80)}...`,
+          content: `[Image attached: ${file.name}]`,
           preview: dataUrl,
           isImage: true,
         });

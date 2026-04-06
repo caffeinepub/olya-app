@@ -160,15 +160,15 @@ export default function SessionManager({
                   </div>
                 </button>
 
-                {/* Delete button — always visible as a flex sibling, never clipped by overflow */}
+                {/* Delete button — always visible with clear destructive color */}
                 <button
                   type="button"
                   onClick={(e) => handleDelete(e, session.sessionId)}
                   disabled={isDeleting}
                   className={`flex items-center justify-center w-8 shrink-0 rounded-r-lg transition-colors touch-manipulation ${
                     isActive
-                      ? "bg-primary/10 border border-primary/30 border-l-0 hover:bg-destructive/20 hover:text-destructive"
-                      : "border border-transparent hover:bg-destructive/10 hover:text-destructive text-muted-foreground/60 hover:border-destructive/20"
+                      ? "bg-primary/10 border border-primary/30 border-l-0 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      : "border border-border text-destructive/70 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
                   }`}
                   title="Delete session"
                   data-ocid={`session.delete_button.${index + 1}`}
