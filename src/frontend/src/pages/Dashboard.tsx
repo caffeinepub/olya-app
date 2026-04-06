@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Download, MessageSquare, Plus, Printer } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Download, History, MessageSquare, Plus, Printer } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import type { ExtendedConversationSession } from "../backend";
@@ -48,6 +55,7 @@ export default function Dashboard() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [asrEngine, setAsrEngine] = useState<string>("webSpeech");
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+  const [mobileSessionOpen, setMobileSessionOpen] = useState(false);
 
   const {
     transcriptEntries,
@@ -77,6 +85,7 @@ export default function Dashboard() {
       const newSession = await createEmptySession.mutateAsync(sessionId);
       setActiveSessionId(newSession.sessionId);
       clearEntries();
+      setMobileSessionOpen(false);
       toast.success("New session created.");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -87,6 +96,7 @@ export default function Dashboard() {
         // Create a local-only session as fallback so the UI still works
         setActiveSessionId(sessionId);
         clearEntries();
+        setMobileSessionOpen(false);
         toast.warning("Session created locally. Some features may be limited.");
       }
     }
@@ -120,6 +130,7 @@ export default function Dashboard() {
     if (sessionId !== activeSessionId) {
       setActiveSessionId(sessionId);
       clearEntries();
+      setMobileSessionOpen(false);
     }
   };
 
@@ -186,6 +197,18 @@ export default function Dashboard() {
 
   const canPrint = activeSessionId !== null && transcriptEntries.length > 0;
 
+  // Shared session manager panel used in both sidebar and mobile sheet
+  const sessionPanel = (
+    <SessionManager
+      sessions={sessions as ExtendedConversationSession[]}
+      activeSessionId={activeSessionId}
+      onSessionSelect={handleSessionSelect}
+      onNewSession={handleNewSession}
+      onDeleteSession={handleDeleteSession}
+      isCreating={createEmptySession.isPending}
+    />
+  );
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="no-print">
@@ -197,7 +220,7 @@ export default function Dashboard() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+        {/* Desktop Sidebar */}
         <aside className="no-print hidden md:flex md:flex-col w-64 border-r border-border bg-card shrink-0">
           <div className="p-3 border-b border-border">
             <Button
@@ -214,16 +237,7 @@ export default function Dashboard() {
               {t("dashboard.newSession")}
             </Button>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <SessionManager
-              sessions={sessions as ExtendedConversationSession[]}
-              activeSessionId={activeSessionId}
-              onSessionSelect={handleSessionSelect}
-              onNewSession={handleNewSession}
-              onDeleteSession={handleDeleteSession}
-              isCreating={createEmptySession.isPending}
-            />
-          </div>
+          <div className="flex-1 overflow-hidden">{sessionPanel}</div>
         </aside>
 
         {/* Main content */}
@@ -252,22 +266,59 @@ export default function Dashboard() {
                 )}
                 {t("dashboard.newSession")}
               </Button>
-              {/* Mobile session list */}
-              <div className="w-full max-w-sm md:hidden">
-                <SessionManager
-                  sessions={sessions as ExtendedConversationSession[]}
-                  activeSessionId={activeSessionId}
-                  onSessionSelect={handleSessionSelect}
-                  onNewSession={handleNewSession}
-                  onDeleteSession={handleDeleteSession}
-                  isCreating={createEmptySession.isPending}
-                />
-              </div>
+              {/* Mobile session list — visible only on small screens when no active session */}
+              <div className="w-full max-w-sm md:hidden">{sessionPanel}</div>
             </div>
           ) : (
             <div className="p-4 space-y-4 max-w-7xl mx-auto">
               {/* Session Summary Bar + action buttons */}
               <div className="flex items-center gap-2 flex-wrap">
+                {/* Mobile: History button to open session drawer */}
+                <Sheet
+                  open={mobileSessionOpen}
+                  onOpenChange={setMobileSessionOpen}
+                >
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="md:hidden gap-1.5 no-print"
+                      title="Session history"
+                    >
+                      <History className="w-4 h-4" />
+                      <span className="text-xs">History</span>
+                      {sessions.length > 0 && (
+                        <span className="ml-1 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5 font-bold">
+                          {sessions.length}
+                        </span>
+                      )}
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-72 p-0 flex flex-col">
+                    <SheetHeader className="p-3 border-b border-border shrink-0">
+                      <SheetTitle className="text-sm flex items-center gap-2">
+                        <History className="w-4 h-4" />
+                        Session History
+                      </SheetTitle>
+                    </SheetHeader>
+                    <div className="p-3 border-b border-border shrink-0">
+                      <Button
+                        className="w-full gap-2 text-sm"
+                        onClick={handleNewSession}
+                        disabled={createEmptySession.isPending}
+                      >
+                        {createEmptySession.isPending ? (
+                          <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Plus className="w-4 h-4" />
+                        )}
+                        {t("dashboard.newSession")}
+                      </Button>
+                    </div>
+                    <div className="flex-1 overflow-hidden">{sessionPanel}</div>
+                  </SheetContent>
+                </Sheet>
+
                 <div className="flex-1 min-w-0">
                   <SessionSummaryBar
                     entries={transcriptEntries}

@@ -110,7 +110,7 @@ export default function SessionManager({
                   className={`flex-1 min-w-0 text-left rounded-l-lg p-2.5 cursor-pointer transition-all duration-150 ${
                     isActive
                       ? "bg-primary/15 border border-primary/30 border-r-0"
-                      : "hover:bg-muted/50 border border-transparent"
+                      : "hover:bg-muted/50 border border-transparent hover:border-border/50"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-1">
@@ -160,23 +160,24 @@ export default function SessionManager({
                   </div>
                 </button>
 
-                {/* Delete button — always visible with clear destructive color */}
+                {/* Delete button — always visible, high-contrast red */}
                 <button
                   type="button"
                   onClick={(e) => handleDelete(e, session.sessionId)}
                   disabled={isDeleting}
-                  className={`flex items-center justify-center w-8 shrink-0 rounded-r-lg transition-colors touch-manipulation ${
+                  className={`flex items-center justify-center w-9 shrink-0 rounded-r-lg transition-colors touch-manipulation border ${
                     isActive
-                      ? "bg-primary/10 border border-primary/30 border-l-0 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      : "border border-border text-destructive/70 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
+                      ? "bg-destructive/20 border-primary/30 border-l-0 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
+                      : "bg-destructive/10 border-border border-l-0 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
                   }`}
                   title="Delete session"
+                  aria-label="Delete session"
                   data-ocid={`session.delete_button.${index + 1}`}
                 >
                   {isDeleting ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-4 w-4" />
                   )}
                 </button>
               </div>
